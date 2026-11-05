@@ -1,27 +1,27 @@
 # BED 1-17 | EPROM / WEPCO 3D Solar Hybrid Dashboard
 
-A GitHub Pages-ready, static HTML/CSS/JavaScript website with an interactive Three.js conceptual 3D microgrid, a 24-hour visual operating timeline, and a client-side financial sensitivity model grounded in the supplied EPROM feasibility workbook.
+A professional interactive engineering viewer and investment dashboard for the BED 1-17 ESP hybrid solar project. V4 includes vendor-inspired equipment detailing, luminous in-tray cable power flow, 17-second 24-hour animated playback and full-year / selected-day generator-off statistics derived from a representative 8,760-hour dispatch model. This is a **conceptual engineering visualization**, not a construction-grade digital twin or live SCADA.
+
+## Live website
+
+**Production:** https://wepco-bed-1-17-solar-hybrid-digital-twin-w562jt.v2.appdeploy.ai/
+
+**Source control:** https://github.com/Elsharnouby-87/wepco-esp-3d
 
 ## Run locally
 
-Because the site uses ES modules, **do not** open `index.html` with a `file://` URL. Start a local static server:
+The site uses a Three.js ESM import and must be bundled with Vite (opening `index.html` directly or serving raw sources with a simple static server will not resolve the bare `three` import):
 
 ```bash
-python -m http.server 8080
+npm install
+npm run dev
 ```
 
-Then browse to `http://localhost:8080`.
+Use the local URL printed by Vite. For a production build, run `npm run build` and `npm run preview`.
 
-No build pipeline is required. The Three.js 3D component loads from jsDelivr on the first visit; the financial dashboard works even when the 3D library cannot load. Modern browsers with WebGL are required for 3D.
+## GitHub Pages
 
-## Publish through GitHub Pages
-
-1. Create a **new GitHub repository** for this project. Review all data first; GitHub Pages normally produces a publicly accessible website.
-2. Upload the **contents** of this folder, with `index.html` at repository root.
-3. In repository **Settings → Pages**, select **Deploy from a branch**, branch **main**, folder **/(root)**, then save.
-4. After deployment, open the Pages address shown by GitHub. It usually has a URL like `https://YOUR_USERNAME.github.io/YOUR_REPOSITORY/`.
-
-Do not upload the original source PDF/DOCX/XLSX documents, confidential tenders, vendor offers, sensitive site photos, or correspondence to a public repo without the respective owner's permission. The delivered site references high-level project parameters only and does not include the source files.
+A Pages workflow builds this Vite application into `dist/` and uploads the compiled artifact. Enable GitHub Pages with **Settings → Pages → Source: GitHub Actions**, if it is not already enabled, and inspect the workflow result. Only publish approved, non-sensitive project information; a public site exposes the model assumptions and financial summary to visitors. AppDeploy and GitHub Pages are separate deployment targets and may have different publishing statuses.
 
 ## Data basis and model caution
 
@@ -43,14 +43,14 @@ Do not upload the original source PDF/DOCX/XLSX documents, confidential tenders,
 | NPV 25Y at 18% | EGP 90,758,417.40 |
 | GHG avoided annually | 166.95085 tCO2 |
 
-**Not part of the model:** Dispatch feasibility, hourly PV/BESS/ESP performance, battery degradation, cell replacement, VAT, civil works, land costs, replacement CAPEX, financing, residual value, major maintenance and uncertainty ranges. Slider changes are **financial sensitivities**, not validated engineering configurations. Site 3D geometry, component placement and the 09:30–15:00 illustrative diesel-off window are not as-built or operational schedule records. The 24-hour playback is illustrative, not a real SCADA feed.
+**Separate screening model:** The current V4 includes hourly PV/BESS/DG dispatch derived from the user-supplied PVGIS-based 8,760-hour representative weather CSV. This model is separate from the financial workbook: the financial base case remains 5.5 h/day unless explicitly overridden as a screening sensitivity. Generation is modeled rather than measured. Genset startup, protection coordination, actual fuel curve, grid-forming capability, battery degradation/replacement, VAT, civil works, land costs, financing and other CAPEX risk items are **not validated**. 3D geometry and operating animation are conceptual and not real SCADA. See `ENGINEERING_MODEL.md` and `V4_RELEASE_NOTES.md` for assumptions, safety limits and test basis.
 
 **Supplied technical references:** EPROM ESP Solar Hybrid SLD; EPROM ESP 456 kWp PVsyst Report; LUNA2000-161-2S11 datasheet; SUN2000-150K-MG0 datasheet; 3406C generator data and site historical material.
 
 ## Technology
 
 - Static HTML + responsive CSS (no framework, no cookies, no server-side data).
-- Three.js ES modules via CDN for 3D scene, interactive orbit camera, physical component selection and day/night lighting.
+- Three.js ES modules bundled by Vite for 3D scene, interactive orbit camera, physical component selection and day/night lighting.
 - Vanilla JS SVG data visualizations (10- or 25-year cash-flow chart; log-scaled diesel escalation scenarios).
 - Strictly on-device financial calculations including NPV, IRR and cumulative payback.
 
@@ -59,7 +59,7 @@ Do not upload the original source PDF/DOCX/XLSX documents, confidential tenders,
 ```
 index.html
 styles.css
-assets/eprom-logo.png
+assets/eprom-logo.svg
 js/finance.js
 js/main.js
 js/scene.js
