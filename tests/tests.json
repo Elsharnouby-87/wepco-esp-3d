@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Hourly energy dispatch and diesel start/stop",
+    "sanity": true,
+    "viewport": "desktop",
+    "covers": [
+      "8760-hour representative weather model",
+      "Hourly PV and BESS power",
+      "Diesel generator source status",
+      "Power balance"
+    ],
+    "description": "Moving the 24h scrubber updates measured-input-derived modeled solar power, battery SOC and diesel supply with power in kW.",
+    "steps": [
+      "Open the 3D Experience and find the hourly weather and dispatch model panel",
+      "Move the hour slider to 12:00 on June 15 and note PV available and diesel status",
+      "Move the hour slider to 00:00"
+    ],
+    "expected": "At midnight PV AVAILABLE is 0 kW, diesel supply is ON and the power-balance total equals 148.5 kW, with the battery SOC displayed."
+  },
+  {
+    "name": "Change normal ESP load and verify energy balances",
+    "viewport": "mobile",
+    "covers": [
+      "165 kVA default",
+      "Load sensitivity",
+      "Power factor",
+      "Battery SOC limits",
+      "Reset"
+    ],
+    "description": "Pump load adjustment changes delivered real power and operating hours and can reset.",
+    "steps": [
+      "At the mobile-size technical panel move ESP load from 165 to 210 kVA",
+      "Check active electrical load reads 189.0 kW at PF 0.90 and the DG-off annual-hours result updates",
+      "Click Reset technical assumptions"
+    ],
+    "expected": "The displayed ESP load is again 165 kVA and 148.5 kW, and no power or SOC labels are blank or negative."
+  },
+  {
+    "name": "Design 456kWp vendor comparison and separation from finance",
+    "viewport": "desktop",
+    "covers": [
+      "Design alternative selector",
+      "PV and BESS capacity switch",
+      "Economic model separation"
+    ],
+    "description": "Switch to supplier design without mixing equipment scope and the 304kWp economic CAPEX.",
+    "steps": [
+      "Record CAPEX, IRR and payback shown in the economics dashboard",
+      "Change the Design basis selector to supplier",
+      "Read PV annual gross MWh, BESS battery size, and design warning"
+    ],
+    "expected": "The 456 kWp / 483.9 kWh supplier design appears, its modelled annual PV exceeds 900 MWh, and the financial KPIs remain based on the 304 kWp reference."
+  },
+  {
+    "name": "Weather month change and manual finance screening sensitivity",
+    "viewport": "desktop",
+    "covers": [
+      "Month/day weather navigation",
+      "24h dispatch chart",
+      "Economic sensitivity link",
+      "Guardrail for supplier CAPEX"
+    ],
+    "description": "Changing date changes representative hourly PV; finance can be manually updated only for matching 304 kWp reference.",
+    "steps": [
+      "Change Climate Month from June to December and select day 15",
+      "Check that the 24h source chart and irradiance change",
+      "Return design to feasibility if needed and click Apply modelled off-hours to economic sensitivity",
+      "Change design to supplier"
+    ],
+    "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
+  },
+  {
+    "name": "Energy-flow visibility and equipment cable trays",
+    "viewport": "mobile",
+    "covers": [
+      "Animated electricity flow inside cable trays",
+      "Show / Hide Energy Flow",
+      "Energy direction and power intensity",
+      "Accessibility state of flow toggle"
+    ],
+    "description": "Toggling the electrical energy-flow visual effect must not remove the 3D physical cables or distort the hourly dispatch values.",
+    "steps": [
+      "Open the 3D Experience section and locate the FLOW switch in the 3D viewer",
+      "Select FLOW to turn animation off and check the control reads NO FX and is not pressed",
+      "Confirm the 3D equipment and cables are still visible; select NO FX to restore animations",
+      "Change the operating hour from midday to midnight using the hour control and confirm diesel supplies the load"
+    ],
+    "expected": "The control changes between FLOW (aria-pressed=true) and NO FX (aria-pressed=false), physical cabling remains visible, and nightly solar/diesel status updates correctly."
+  }
+]
