@@ -1,3 +1,4 @@
+import './finance.js';
 const {BASE,calculate,number,millions}=window.WEPCO;
 const $=sel=>document.querySelector(sel);
 const $$=sel=>[...document.querySelectorAll(sel)];
