@@ -46,3 +46,9 @@ Both are **screening / potential** figures, not guaranteed minima. The financial
 4. Confirm exact inverter and PCS firmware, grid-forming/load steps, brownfield SLD, anti-islanding, synchronizing and fail-safe protection, DG auto-start timing and black-start capability.
 5. Validate SOC and BESS thermal derating, auxiliary loads, round-trip efficiency at part load/temperature, annual degradation/replacement and maintenance.
 6. Run half-hour / 1-minute event model for transitions and startup, then revise procurement CAPEX for the selected 304 or 456 kWp BOM and recalculate financial cashflow at measured generator fuel curve.
+
+## V3 engineering visualization update (5 November 2026)
+
+The Three.js display is a **conceptual visualization**, not an issued-for-construction cable-routing model. It adds three-dimensional cable trays with visible side rails, bases, cross-rungs, supports, insulated conductors and metallic conduit risers. Routes represent system-level connections between PV inverters, battery storage, generator, LV board and ESP/VSD; actual site routing, buried sections, cable cross-sectional areas, hazardous-area classification, earthing and gland specifications remain **to be verified**.
+
+Energy-flow indicators are emissive, directional streaks that follow the **tray centerlines** rather than curves floating above the site. Their speed and count are mapped monotonically to the modeled kW flowing through each path, with saturation at the selected illustrative reference power; they are not physical current or electric-field simulations. Charging runs opposite to discharging. The FLOW / NO FX control hides and restores the streaks and cable emissive effects **without hiding the physical infrastructure**. The model still uses `simulateYear()` for the PV/BESS/diesel logic. Financial model assumptions are unchanged.
