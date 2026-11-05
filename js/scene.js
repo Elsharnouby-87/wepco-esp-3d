@@ -25,7 +25,7 @@ function panelTexture(){const c=document.createElement('canvas');c.width=160;c.h
 const assetProps={pv:{target:new THREE.Vector3(-17,0,-3),distance:39},bess:{target:new THREE.Vector3(29,1,-16),distance:18},genset:{target:new THREE.Vector3(29,1,12),distance:19},esp:{target:new THREE.Vector3(30,1,26),distance:16}};
 export class MicrogridScene{
  constructor(mount,{onAssetClick}={}){
-  this.mount=mount;this.onAssetClick=onAssetClick;this.mode='feasibility';this.hour=12;this.paused=false;this.disposed=false;this.elapsed=0;this.assetObjects=[];this.objectParents=new Map();this.pulses=[];this.fadeLabels=[];
+  this.mount=mount;this.onAssetClick=onAssetClick;this.mode='feasibility';this.hour=12;this.paused=false;this.disposed=false;this.elapsed=0;this.assetObjects=[];this.objectParents=new Map();this.pulses=[];this.fadeLabels=[];this.flowVisible=true;this.cableRoutes=[];this.flowStates={};
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
   this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.25;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.mount.appendChild(this.renderer.domElement);
@@ -166,36 +166,67 @@ export class MicrogridScene{
     switchboard.add(box(.065,.22,.11,signal,20.0+i*.58,1.51,4.48));
   }
   const swLabel=labelSprite('LV MICROGRID SWITCHGEAR','#b5efe0');swLabel.position.set(20.6,5.65,3);switchboard.add(swLabel);
-  // Physical cable conduits: sinusoidal flexible PVC drops feed realistic
-  // elevated tray runs with 3-phase conductors and removable support posts.
+  // Physical cable infrastructure: cable trays, support posts and rigid conduits
+  // based on the equipment arrangement shown in the supplier SLD / datasheets.
   this.physicalCables=new THREE.Group();this.hardware.add(this.physicalCables);
-  const cableMats={dc:paint(0x4eaecc,.36,.34),ess:paint(0x6fcba1,.36,.34),ac:paint(0xcc9670,.36,.42),load:paint(0x94a7d2,.36,.34)};
+  // Lidded/open-top ladder cable tray runs, individual conductors, rigid metallic
+  // conduit risers and concrete supports. The geometry is *illustrative*, not a
+  // route survey, cable schedule or hazardous-area installation specification.
+  const cableMats={dc:paint(0x4eaecc,.35,.34),ess:paint(0x6fcba1,.35,.34),ac:paint(0xcc9670,.35,.40),load:paint(0x94a7d2,.35,.34)};
+  const trayMat=paint(0x2d4248,.72,.38),trayRail=paint(0x839397,.67,.35),conduitMat=paint(0x99a6a8,.58,.38);
   const cableRoutes=[
-   {kind:'dc',pts:[[-16,.23,-20],[1,.24,-20],[20,.24,-20],[20,.24,-6.8],[25,.27,-6.8]]},
-   {kind:'ess',pts:[[29,.30,-12.7],[29,.30,-9.0],[25,.30,-9],[25,.30,1.3],[22.4,.30,1.3]]},
-   {kind:'ac',pts:[[31,.30,8.3],[31,.30,6.3],[24,.30,6.3],[22.5,.30,4.0]]},
-   {kind:'load',pts:[[20.5,.34,4.2],[20.5,.34,19],[24,.34,19],[24,.55,24.7]]},
+   {id:'pv',kind:'dc',nominalKw:450,glow:0x7bdfff,pts:[[-16,.42,-20],[0,.42,-20],[20,.42,-20],[20,.42,-6.8],[25,.42,-6.8]],drops:[[-16,1.26,-20],[-8,1.18,-20],[20,1.52,-6.8],[25,1.62,-6.8]]},
+   {id:'battery',kind:'ess',nominalKw:324,glow:0x63f1b0,pts:[[29,.48,-12.7],[29,.48,-9.0],[25,.48,-9],[25,.48,1.3],[22.4,.48,1.3]],drops:[[29,1.72,-12.7],[25,1.62,-9],[22.4,1.82,1.3]]},
+   {id:'generator',kind:'ac',nominalKw:250,glow:0xf2af64,pts:[[31,.48,8.3],[31,.48,6.3],[24,.48,6.3],[22.5,.48,4.0]],drops:[[31,1.42,8.3],[24,1.58,6.3],[22.5,1.72,4.0]]},
+   {id:'load',kind:'load',nominalKw:250,glow:0x9ce9ff,pts:[[20.5,.52,4.2],[20.5,.52,19],[24,.52,19],[24,.76,24.7]],drops:[[20.5,1.66,4.2],[24,1.66,19],[24,1.95,24.7]]},
   ];
+  this.cableRoutes=[];
   for(const route of cableRoutes){
     const path=route.pts.map(q=>new THREE.Vector3(...q));
     const curve=new THREE.CatmullRomCurve3(path,false,'centripetal');
-    const length=curve.getLength(),N=Math.max(8,Math.ceil(length/2));
-    const cableTray=new THREE.Mesh(new THREE.TubeGeometry(curve,N*2,.23,6,false),paint(0x23383c,.58,.48));
-    this.physicalCables.add(cableTray);
+    const length=curve.getLength(),segments=Math.max(16,Math.ceil(length*3));
+    // Straight tray pieces with 3-dimensional side rails and cross-rungs, not a floating tube.
+    for(let i=1;i<path.length;i++){
+      const a=path[i-1],b=path[i],v=b.clone().sub(a),direction=v.clone().normalize();
+      const len=v.length();const side=new THREE.Vector3(-direction.z,0,direction.x).normalize();
+      const middle=a.clone().add(b).multiplyScalar(.5);
+      const angle=Math.atan2(v.z,v.x);
+      const plate=box(len,.052,.61,trayMat,middle.x,middle.y-.10,middle.z);
+      plate.rotation.y=-angle;this.physicalCables.add(plate);
+      for(const sign of [-1,1]){
+        const railSide=box(len,.22,.055,trayRail,middle.x+sign*side.x*.295,middle.y+.045,middle.z+sign*side.z*.295);
+        railSide.rotation.y=-angle;this.physicalCables.add(railSide);
+      }
+      const n=Math.max(2,Math.round(len/2.0));
+      for(let j=0;j<=n;j++){
+        const t=j/n,loc=a.clone().lerp(b,t);
+        const rung=box(.065,.047,.59,trayRail,loc.x,loc.y-.052,loc.z);rung.rotation.y=-angle;this.physicalCables.add(rung);
+      }
+    }
+    const wires=[];
     for(let phase=0;phase<3;phase++){
-      const pp=path.map((q,j)=>new THREE.Vector3(q.x+(phase-1)*.115,q.y+.12,q.z+(phase-1)*.065));
-      const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pp,false,'centripetal'),N*3,.054,8,false),cableMats[route.kind]);
-      this.physicalCables.add(wire);
+      const pp=path.map(q=>new THREE.Vector3(q.x+(phase-1)*.095,q.y+.086,q.z+(phase-1)*.058));
+      const mat=new THREE.MeshStandardMaterial({color:cableMats[route.kind].color,metalness:.22,roughness:.42,emissive:0x000000,emissiveIntensity:0});
+      const conductor=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pp,false,'centripetal'),segments,.047,8,false),mat);
+      conductor.castShadow=true;this.physicalCables.add(conductor);wires.push(conductor);
     }
-    for(let k=1;k<length/4;k++){
-      const pt=curve.getPoint(k*4/length);
-      this.physicalCables.add(box(.8,.07,.65,rail,pt.x,pt.y-.22,pt.z));
-      this.physicalCables.add(cyl(.065,.24,rail,pt.x,pt.y-.33,pt.z));
+    for(let t=.04;t<.99;t+=1/Math.max(7,Math.floor(length/2.9))){
+      const pt=curve.getPointAt(t);
+      const plinth=box(.64,.06,.64,concrete,pt.x,pt.y-.29,pt.z);
+      const pedestal=box(.105,.18,.105,trayRail,pt.x,pt.y-.19,pt.z);
+      this.physicalCables.add(plinth,pedestal);
     }
+    for(const drop of route.drops){
+      const a=[drop[0],drop[1],drop[2]],b=[drop[0],route.pts[0][1]+.10,drop[2]];
+      const riser=cylinderBetween(a,b,.073,conduitMat);this.physicalCables.add(riser);
+      const gland=box(.20,.075,.20,trayRail,drop[0],b[1]+.06,drop[2]);this.physicalCables.add(gland);
+    }
+    this.cableRoutes.push({id:route.id,curve,segments,nominalKw:route.nominalKw,defaultColor:route.glow,wires});
   }
   this.hardware.add(box(9,.12,1.4,concrete,28.9,-.01,-9));
   for(const z of[-6.2,2.8,7.2]){this.hardware.add(box(11,.09,.36,rail,28.8,.15,z));}
   this.leds=this.batteryIndicators;
+
  }
  makeSolarArray(mode){if(this.pvGroup){this.scene.remove(this.pvGroup);this.pvGroup.traverse(o=>{if(o.geometry&&o.geometry !== this.sharedGeom)o.geometry.dispose()});this.assetObjects=this.assetObjects.filter(o=>o!==this.pvGroup)}
   this.pvGroup=this.register(new THREE.Group(),'pv');this.scene.add(this.pvGroup);
@@ -213,15 +244,42 @@ export class MicrogridScene{
   this.inverterGroup.children.forEach((o)=>{if(o.type==='Sprite')return;o.visible=true});
   if(mode==='feasibility'){this.inverterGroup.children.slice(8,12).forEach(o=>o.visible=false)}
  }
- makeFlow(){const paths=[
-  {id:'pv',from:[-9,2,-21],to:[24,.7,-5],color:0x86d8ee},
-  {id:'battery',from:[29,2,-14],to:[29,.6,1],color:0x62e8b7},
-  {id:'load',from:[29,.65,2],to:[29,2,24],color:0x9affd6},
-  {id:'generator',from:[29,1,11],to:[29,.7,4],color:0xf0b86b}
- ];
-  for(const p of paths){const a=new THREE.Vector3(...p.from),b=new THREE.Vector3(...p.to);const mid=a.clone().lerp(b,.5);mid.y+=2.1;const curve=new THREE.QuadraticBezierCurve3(a,mid,b);
-   const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,32,.055,6,false),new THREE.MeshBasicMaterial({color:p.color,transparent:true,opacity:.32}));this.scene.add(tube);
-   const dots=[];for(let n=0;n<5;n++){const dot=new THREE.Mesh(new THREE.SphereGeometry(.19,9,9),new THREE.MeshBasicMaterial({color:p.color,transparent:true,opacity:.92}));dot.position.copy(curve.getPoint(n/5));this.scene.add(dot);dots.push(dot)}this.pulses.push({curve,dots,id:p.id});
+ makeFlow(){
+  // Travelling emissive streaks share exactly the same cable-tray centreline.
+  // Neither the light trajectories nor the conductor sizing imply as-built routing.
+  this.energyFlowGroup=new THREE.Group();this.hardware.add(this.energyFlowGroup);this.pulses=[];
+  for(const route of this.cableRoutes){
+   const lightCurve=new THREE.CatmullRomCurve3(route.curve.points.map(q=>q.clone().add(new THREE.Vector3(0,.105,0))),false,'centripetal');
+   const glowMat=new THREE.MeshBasicMaterial({color:route.defaultColor,transparent:true,opacity:0,depthWrite:false});
+   const glow=new THREE.Mesh(new THREE.TubeGeometry(lightCurve,route.segments,.018,6,false),glowMat);
+   glow.renderOrder=3;this.energyFlowGroup.add(glow);
+   const pulses=[];
+   for(let i=0;i<13;i++){
+    const mat=new THREE.MeshBasicMaterial({color:route.defaultColor,transparent:true,opacity:.95,depthWrite:false});
+    // Long, slim light-segments follow the cable tray. No flying spheres.
+    const pulse=new THREE.Mesh(new THREE.CylinderGeometry(.029,.029,.32,7),mat);
+    pulse.visible=false;pulse.renderOrder=4;this.energyFlowGroup.add(pulse);pulses.push(pulse);
+   }
+   this.pulses.push({id:route.id,curve:lightCurve,samples:lightCurve.getPoints(160),nominalKw:route.nominalKw,glow,pulses,state:{active:false,kw:0,color:route.defaultColor,direction:1},wires:route.wires});
+  }
+ }
+ setFlowVisible(flag){
+  this.flowVisible=Boolean(flag);
+  if(this.energyFlowGroup)this.energyFlowGroup.visible=this.flowVisible;
+  for(const flow of this.pulses){
+   const ratio=Math.min(1,flow.state.kw/flow.nominalKw);
+   for(const wire of flow.wires)wire.material.emissiveIntensity=this.flowVisible&&flow.state.active?.22+ratio*.85:0;
+  }
+ }
+ applyFlowState(id,kw,color,direction=1){
+  const flow=this.pulses.find(p=>p.id===id);if(!flow)return;
+  flow.state={active:kw>0.15,kw:Math.max(0,kw),color,direction};
+  const ratio=Math.max(0,Math.min(1,flow.state.kw/flow.nominalKw));
+  flow.glow.material.color.setHex(color);
+  flow.glow.material.opacity=this.flowVisible&&flow.state.active?(0.10+ratio*.38):0;
+  for(const wire of flow.wires){
+   wire.material.emissive.setHex(color);
+   wire.material.emissiveIntensity=this.flowVisible&&flow.state.active?.22+ratio*.85:0;
   }
  }
  makeSun(){this.sunOrb=new THREE.Mesh(new THREE.SphereGeometry(3,18,18),new THREE.MeshBasicMaterial({color:0xf2d8a0,fog:false}));this.scene.add(this.sunOrb);this.sunHalo=new THREE.Sprite(new THREE.SpriteMaterial({color:0xf7d899,transparent:true,opacity:.33}));this.sunHalo.scale.set(12,12,1);this.scene.add(this.sunHalo);
@@ -247,14 +305,45 @@ export class MicrogridScene{
   const sunPower=Math.max(0,Math.min(1,row.ghi/850));
   this.sunLight.intensity=.4+sunPower*3.5;
   this.ambient.intensity=.7+sunPower*1.6;
+  const pvKw=Math.max(0,row.solarToLoad+row.charge);
+  const battKw=Math.max(0,row.batteryToLoad||row.charge||0);
+  const battDir=row.batteryToLoad>0.05?1:-1;
+  const battColor=row.batteryToLoad>0.05?0x72a6ff:0x63ef9b;
+  const loadColor=row.dieselOn?0xa9d8ff:row.batteryToLoad>0.05?0x8ef0d6:0xb9fff2;
+  this.applyFlowState('pv',pvKw,0x7bdfff,1);
+  this.applyFlowState('battery',battKw,battColor,battDir);
+  this.applyFlowState('generator',Math.max(0,row.genToLoad),0xf2af64,1);
+  this.applyFlowState('load',Math.max(0,row.loadKw),loadColor,1);
  }
  setMode(mode){if(!['feasibility','supplier'].includes(mode))return;this.makeSolarArray(mode);}
+
  focusAsset(id,sendCallback=false){if(!assetProps[id])return;this.selectedAsset=id;this.controls.autoRotate=false;this.focusTarget=assetProps[id].target.clone();const dir=this.camera.position.clone().sub(this.controls.target).normalize();this.focusCamera=assetProps[id].target.clone().addScaledVector(dir,assetProps[id].distance);if(sendCallback&&this.onAssetClick)this.onAssetClick(id);}
  resetCamera(){this.focusTarget=new THREE.Vector3(4,0,-1);this.focusCamera=new THREE.Vector3(45,37,54);this.controls.autoRotate=true;}
  setPaused(pause){this.paused=Boolean(pause);}
  animate(now){if(this.disposed)return;this.frame=requestAnimationFrame(this.animate);const dt=Math.min(.05,(now-this.last)/1000||.016);this.last=now;if(!this.paused){this.elapsed+=dt;
-   for(const p of this.pulses){const visible=(p.id==='pv'?this.solarOn:p.id==='generator'?this.dieselOn:p.id==='battery'?this.bessActive:true);
-    p.dots.forEach((d,i)=>{d.visible=visible;if(!visible)return;const t=(this.elapsed*(p.id==='generator'?.22:.12)+i/p.dots.length)%1;d.position.copy(p.curve.getPoint(t));d.scale.setScalar(.73+Math.sin(this.elapsed*2+i)*.18)});
+   for(const p of this.pulses){
+    const ratio=Math.max(0,Math.min(1,p.state.kw/p.nominalKw));
+    const visible=this.flowVisible&&p.state.active&&ratio>.01;
+    const activeCount=Math.max(1,Math.round(2+ratio*10));
+    const speed=(.12+ratio*.58)*(p.id==='generator'?.78:1);
+    p.glow.visible=visible;
+    p.glow.material.opacity=visible?(0.08+ratio*.26):0;
+    p.pulses.forEach((pulse,i)=>{
+      pulse.visible=visible&&i<activeCount;
+      if(!pulse.visible)return;
+      // Sample precomputed, bounded waypoints. Avoid CatmullRom extrapolation at t=1.
+      const raw=(this.elapsed*speed+i/activeCount)%1;
+      const phase=Number.isFinite(raw)?raw:0;
+      const t=Math.max(0,Math.min(.999999,p.state.direction>0?phase:1-phase));
+      const scaled=t*(p.samples.length-1);
+      const n=Math.min(p.samples.length-2,Math.floor(scaled));
+      const progress=scaled-n;
+      pulse.position.copy(p.samples[n]).lerp(p.samples[n+1],progress);
+      const tangent=p.samples[n+1].clone().sub(p.samples[n]).normalize().multiplyScalar(p.state.direction);
+      pulse.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tangent);
+      pulse.scale.setScalar(.64+ratio*.83);
+      pulse.material.color.setHex(p.state.color);pulse.material.opacity=.78+ratio*.22;
+    });
    }this.sunOrb.rotation.y+=dt*.06;
   }
   if(this.focusTarget){this.controls.target.lerp(this.focusTarget,Math.min(1,dt*3.8));this.camera.position.lerp(this.focusCamera,Math.min(1,dt*3.5));if(this.controls.target.distanceTo(this.focusTarget)<.1){this.focusTarget=null;this.focusCamera=null;}}
