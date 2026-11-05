@@ -138,7 +138,7 @@ function bind(){initHoursGrid();for(const [control,key,transform] of [['ctrl-die
  $('#view-reset').addEventListener('click',()=>state.scene?.resetCamera());
  $('#view-pause').addEventListener('click',()=>{state.paused3D=!state.paused3D;state.scene?.setPaused(state.paused3D);txt('view-pause',state.paused3D?'▶':'Ⅱ');});
  $('#time-play').addEventListener('click',()=>{state.playing=!state.playing;txt('play-text',state.playing?'PAUSE 24-HOUR CYCLE':'PLAY 24-HOUR CYCLE');txt('play-icon',state.playing?'Ⅱ':'▶');$('#time-play').setAttribute('aria-pressed',String(state.playing));});
- let last=0;const tick=now=>{if(state.playing && !document.hidden){const delta=last?Math.min(.085,(now-last)/1000):0;state.playElapsed=(state.playElapsed||0)+delta*1.4;if(state.playElapsed>=1){state.hour=(state.hour+1)%24;state.playElapsed=0;updateTime();}}last=now;requestAnimationFrame(tick);};requestAnimationFrame(tick);
+ let last=0;const tick=now=>{if(state.playing && !document.hidden){const delta=last?Math.min(.085,(now-last)/1000):0;state.playElapsed=(state.playElapsed||0)+delta*0.7;if(state.playElapsed>=1){state.hour=(state.hour+1)%24;state.playElapsed=0;updateTime();}}last=now;requestAnimationFrame(tick);};requestAnimationFrame(tick);
  updateModel();updateTime();switchDesign();
  if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting&&state.playing&&entry.target.id==='experience'){state.playing=false;txt('play-text','PLAY 24-HOUR CYCLE');txt('play-icon','▶');$('#time-play').setAttribute('aria-pressed','false');}})},{threshold:.05});observer.observe($('#experience'));}
  // Scene loading is independent: finance, controls and charts remain functional offline.
