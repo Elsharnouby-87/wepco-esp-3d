@@ -58,6 +58,13 @@ function updateTime(){
  const row=state.tech?.rows[getIndex(state.month,state.day,t)];
  if(!row){ txt('time-period','MODEL LOADING');return; }
  const dateLabel=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(2025,state.month-1,state.day)));
+ txt('deck-clock',String(t).padStart(2,'0')+':00');
+ $('#cycle-progress').style.width=((t+1)/24*100).toFixed(1)+'%';
+ const selectedRows=state.tech.rows.slice(getIndex(state.month,state.day,0),getIndex(state.month,state.day,0)+24);
+ const selectedOffHours=selectedRows.reduce((total,h)=>total+(h.dieselOn?0:1),0);
+ txt('selected-day-off',nf(selectedOffHours));
+ txt('selected-day-detail',`${dateLabel} · ${nf(24-selectedOffHours)} h DG running`);
+
  txt('time-period',row.ghi>5?'SOLAR WEATHER / '+dateLabel:'NIGHT / '+dateLabel);
  txt('pv-state',row.pvAvailable>0.5?(row.pvUsed>0.5?'ACTIVE':'CURTAILED'):'NO IRRADIANCE');
  txt('bess-state',row.batteryState);
@@ -65,6 +72,14 @@ function updateTime(){
  $('#diesel-state').style.color=row.dieselOn?'#edc38f':'#72eabd';
  txt('kwh-pv',nf(row.pvAvailable,1));txt('kwh-solar',nf(row.solarToLoad,1));txt('kwh-batt',nf(row.batteryToLoad,1));txt('kwh-charge',nf(row.charge,1));txt('kwh-diesel',nf(row.genToLoad,1));
  txt('kwh-curtail',nf(row.curtailed,1));txt('kwh-load',nf(row.loadKw,1));txt('kwh-ghi',nf(row.ghi,0));txt('kwh-temp',nf(row.temperature,1));
+ txt('flow-pv-kw',nf(row.solarToLoad+row.charge,1));
+ txt('flow-battery-kw',nf(row.batteryToLoad||row.charge,1));
+ txt('flow-battery-label',row.batteryToLoad>0.05?'BESS → LOAD':row.charge>0.05?'PV → BESS':'BESS IDLE');
+ txt('flow-diesel-kw',nf(row.genToLoad,1));txt('flow-esp-kw',nf(row.loadKw,1));
+ $('.flow-readout.battery').classList.toggle('discharging',row.batteryToLoad>0.05);
+ $('.flow-readout.battery').classList.toggle('charging',row.charge>0.05);
+ for(const [k,active] of [['solar',row.solarToLoad+row.charge>.05],['battery',row.charge+row.batteryToLoad>.05],['diesel',row.genToLoad>.05]])$('.flow-readout.'+k).classList.toggle('energized',active);
+
  txt('kwh-soc',nf(row.soc*100,1));txt('kwh-stored',nf(row.socKwh,1));
  $('#soc-fill').style.width=(row.soc*100).toFixed(1)+'%';
  txt('power-status',row.dieselOn?'DIESEL GENERATOR • ISLAND SUPPLY':'DIESEL OFF • SOLAR / BATTERY ISLAND');
@@ -84,6 +99,9 @@ function updateTime(){
 function updateDispatch(){
  state.tech=simulateYear(state.design,state.loadKva,state.powerFactor);
  txt('tech-off-hours',nf(state.tech.annual.offHours));
+ txt('model-avg-off',nf(state.tech.annual.offHours/365,2));
+ txt('model-avg-detail',`${nf(state.tech.annual.offHours)} h off / 8,760 modeled h`);
+
  txt('tech-fuel',nf(state.tech.annual.dieselAvoidedL));
  txt('tech-pv-energy',nf(state.tech.annual.pvKwh/1000,1));
  txt('tech-curtail',nf(state.tech.annual.curtailKwh/1000,1));
@@ -116,13 +134,13 @@ function bind(){initHoursGrid();for(const [control,key,transform] of [['ctrl-die
  $('#reset-technical').addEventListener('click',()=>{state.loadKva=165;state.powerFactor=.9;state.month=6;state.day=15;state.hour=12;$('#ctrl-load').value='165';$('#ctrl-pf').value='.9';$('#ctrl-month').value='6';$('#ctrl-day').value='15';$('#ctrl-day').max='30';updateDispatch();});
  $('#design-basis').addEventListener('change',switchDesign);
  $$('[data-asset]').forEach(b=>b.addEventListener('click',()=>selectAsset(b.dataset.asset,true)));
- $('#view-flow').addEventListener('click',()=>{state.flowVisible=!state.flowVisible;const btn=$('#view-flow');btn.classList.toggle('active',state.flowVisible);btn.setAttribute('aria-pressed',String(state.flowVisible));btn.textContent=state.flowVisible?'FLOW':'NO FX';state.scene?.setFlowVisible(state.flowVisible);});
+ $('#view-flow').addEventListener('click',()=>{state.flowVisible=!state.flowVisible;const btn=$('#view-flow');btn.classList.toggle('active',state.flowVisible);btn.setAttribute('aria-pressed',String(state.flowVisible));btn.textContent=state.flowVisible?'FLOW ON':'FLOW OFF';state.scene?.setFlowVisible(state.flowVisible);});
  $('#view-reset').addEventListener('click',()=>state.scene?.resetCamera());
  $('#view-pause').addEventListener('click',()=>{state.paused3D=!state.paused3D;state.scene?.setPaused(state.paused3D);txt('view-pause',state.paused3D?'▶':'Ⅱ');});
- $('#time-play').addEventListener('click',()=>{state.playing=!state.playing;txt('play-text',state.playing?'Pause 24-hour cycle':'Play 24-hour cycle');txt('play-icon',state.playing?'Ⅱ':'▶');});
- let last=0;const tick=now=>{if(state.playing && !document.hidden){const delta=last?Math.min(.085,(now-last)/1000):0;state.playElapsed=(state.playElapsed||0)+delta*2.8;if(state.playElapsed>=1){state.hour=(state.hour+1)%24;state.playElapsed=0;updateTime();}}last=now;requestAnimationFrame(tick);};requestAnimationFrame(tick);
+ $('#time-play').addEventListener('click',()=>{state.playing=!state.playing;txt('play-text',state.playing?'PAUSE 24-HOUR CYCLE':'PLAY 24-HOUR CYCLE');txt('play-icon',state.playing?'Ⅱ':'▶');$('#time-play').setAttribute('aria-pressed',String(state.playing));});
+ let last=0;const tick=now=>{if(state.playing && !document.hidden){const delta=last?Math.min(.085,(now-last)/1000):0;state.playElapsed=(state.playElapsed||0)+delta*1.4;if(state.playElapsed>=1){state.hour=(state.hour+1)%24;state.playElapsed=0;updateTime();}}last=now;requestAnimationFrame(tick);};requestAnimationFrame(tick);
  updateModel();updateTime();switchDesign();
- if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting&&state.playing&&entry.target.id==='experience'){state.playing=false;txt('play-text','Play 24-hour cycle');txt('play-icon','▶');}})},{threshold:.05});observer.observe($('#experience'));}
+ if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting&&state.playing&&entry.target.id==='experience'){state.playing=false;txt('play-text','PLAY 24-HOUR CYCLE');txt('play-icon','▶');$('#time-play').setAttribute('aria-pressed','false');}})},{threshold:.05});observer.observe($('#experience'));}
  // Scene loading is independent: finance, controls and charts remain functional offline.
  import('./scene.js').then(({MicrogridScene})=>{try{state.scene=new MicrogridScene($('#three-canvas'),{onAssetClick:id=>selectAsset(id,false)});$('#scene-fallback').remove();state.scene.setTime(state.hour);state.scene.setMode(state.design);state.scene.setFlowVisible(state.flowVisible);if(state.tech)state.scene.setDispatch(state.tech.rows[getIndex(state.month,state.day,state.hour)]);if(reducedMotion)state.scene.setPaused(true);}catch(err){console.warn('3D renderer unavailable, static schematic shown:',err);txt('scene-fallback','');$('#scene-fallback').innerHTML='<div class="fallback-art"><div class="fallback-sun"></div><div class="fallback-panels"></div><div class="fallback-box a"></div><div class="fallback-box b"></div><div class="fallback-box c"></div></div><p>Interactive 3D requires WebGL support.</p>';}}).catch(err=>{$('#scene-fallback p').textContent='3D renderer requires an internet connection to load Three.js.';console.warn('3D module unavailable:',err);});
 }
