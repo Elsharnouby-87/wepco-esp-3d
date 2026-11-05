@@ -9,16 +9,18 @@
       "Diesel generator source status",
       "Power balance",
       "Generator off hours full-year average",
-      "Generator off hours selected day"
+      "Generator off hours selected day",
+      "V5 rebuilt PV rack geometry and no protruding center frame"
     ],
     "description": "Moving the 24h scrubber updates measured-input-derived modeled solar power, battery SOC and diesel supply with power in kW.",
     "steps": [
       "Open the 3D Experience and find the hourly weather and dispatch model panel",
       "Move the hour slider to 12:00 on June 15 and note PV available and diesel status",
       "Move the hour slider to 00:00",
-      "Confirm the MODEL AVG card reads 9.27 hours/day and the 15 Jun selected-day card reads 11 hours/day at 165 kVA, PF 0.90"
+      "Confirm the MODEL AVG card reads 9.27 hours/day and the 15 Jun selected-day card reads 11 hours/day at 165 kVA, PF 0.90",
+      "Inspect PV rows from close-up and verify there is no tall central object protruding through panel faces."
     ],
-    "expected": "At midnight PV AVAILABLE is 0 kW, diesel supply is ON and the power-balance total equals 148.5 kW, with the battery SOC displayed. The 304 kWp base simulation shows 3385 yearly off hours, 9.27 h/day average, 11 h off on 15 June."
+    "expected": "At midnight PV AVAILABLE is 0 kW, diesel supply is ON and the power-balance total equals 148.5 kW, with the battery SOC displayed. The 304 kWp base simulation shows 3385 yearly off hours, 9.27 h/day average, 11 h off on 15 June. PV field displays consistent shallow tilt and realistic supports."
   },
   {
     "name": "Change normal ESP load and verify energy balances",
@@ -74,25 +76,25 @@
     "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
   },
   {
-    "name": "V4 visible energy flow and prominent half-speed daily playback",
+    "name": "V5 branding removal, clean PV array, improved in-cable flow and half-speed 24h playback",
     "viewport": "mobile",
     "covers": [
-      "Vivid 3D in-cable energy flow",
-      "Show Hide Energy Flow",
-      "24-hour playback direct below 3D",
-      "Half-speed daily playback",
-      "Selected day DG off-hours",
-      "Modelled average daily DG off-hours",
-      "Mobile UI hierarchy"
+      "No EPROM logo",
+      "No redundant source-assumptions section",
+      "Visible and togglable animated in-cable flow",
+      "Corrected solar-module tilt and support structure",
+      "24-hour cycle half V4 playback speed",
+      "Energy simulation results unchanged"
     ],
-    "description": "Ensures mobile visitors can see flow by default, switch it off and on, play/pause a slower daily simulation immediately below the 3D, and inspect the two precisely calculated diesel-off metrics.",
+    "description": "Check V5 streamlines mobile content and provides smoother more visible cable animation with a slower day cycle.",
     "steps": [
-      "On mobile open 3D Experience and verify the green PLAY 24-HOUR CYCLE button appears immediately below the model, before the operations panel",
-      "Check BASE 304 kWp / 165 kVA with 9.27 h/day full-year average and 11 h on 15 June",
-      "Tap FLOW ON and ensure the button switches to FLOW OFF, then restore FLOW ON",
-      "Tap PLAY 24-HOUR CYCLE and verify the button changes to PAUSE 24-HOUR CYCLE while clock advances at a moderate pace",
-      "Tap pause and confirm model time stops advancing"
+      "Open home page on mobile and verify the header shows BED 1-17 with a neutral mark but no EPROM logo.",
+      "Scroll to the 3D field and examine PV panel rows: all panels have a consistent shallow tilt and support rails below the tables.",
+      "Confirm FLOW ON displays distinct bright moving colors embedded in the cable trays, then switch FLOW OFF and back on.",
+      "Press PLAY 24-HOUR CYCLE and confirm it takes approximately 34 seconds for the 24 modelled hours to advance at 0.7 hour/second.",
+      "Scroll beyond investment charts and impact cards to footer and confirm the large Transparency / Engineering Assumptions block is no longer present.",
+      "Verify hourly generator off metrics and scenario calculations remain available."
     ],
-    "expected": "Viewer retains physical equipment and cable trays when effects are disabled; operator deck remains legible at 375 px; playback advances approximately one modeled hour every 0.71 seconds and pauses; diesel-off summary cards show the modeled annual average and chosen day."
+    "expected": "No EPROM image logo, no obsolete basis section, more legible power-flow lights without floating wires, correct PV rack appearance, slower cycle, 3D asset controls and economics still working."
   }
 ]
