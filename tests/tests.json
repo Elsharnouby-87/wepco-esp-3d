@@ -7,15 +7,18 @@
       "8760-hour representative weather model",
       "Hourly PV and BESS power",
       "Diesel generator source status",
-      "Power balance"
+      "Power balance",
+      "Generator off hours full-year average",
+      "Generator off hours selected day"
     ],
     "description": "Moving the 24h scrubber updates measured-input-derived modeled solar power, battery SOC and diesel supply with power in kW.",
     "steps": [
       "Open the 3D Experience and find the hourly weather and dispatch model panel",
       "Move the hour slider to 12:00 on June 15 and note PV available and diesel status",
-      "Move the hour slider to 00:00"
+      "Move the hour slider to 00:00",
+      "Confirm the MODEL AVG card reads 9.27 hours/day and the 15 Jun selected-day card reads 11 hours/day at 165 kVA, PF 0.90"
     ],
-    "expected": "At midnight PV AVAILABLE is 0 kW, diesel supply is ON and the power-balance total equals 148.5 kW, with the battery SOC displayed."
+    "expected": "At midnight PV AVAILABLE is 0 kW, diesel supply is ON and the power-balance total equals 148.5 kW, with the battery SOC displayed. The 304 kWp base simulation shows 3385 yearly off hours, 9.27 h/day average, 11 h off on 15 June."
   },
   {
     "name": "Change normal ESP load and verify energy balances",
@@ -31,7 +34,8 @@
     "steps": [
       "At the mobile-size technical panel move ESP load from 165 to 210 kVA",
       "Check active electrical load reads 189.0 kW at PF 0.90 and the DG-off annual-hours result updates",
-      "Click Reset technical assumptions"
+      "Click Reset technical assumptions",
+      "Confirm modeled generator-off average recalculates with the higher pump load before reset"
     ],
     "expected": "The displayed ESP load is again 165 kVA and 148.5 kW, and no power or SOC labels are blank or negative."
   },
@@ -70,21 +74,25 @@
     "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
   },
   {
-    "name": "Energy-flow visibility and equipment cable trays",
+    "name": "V4 visible energy flow and prominent half-speed daily playback",
     "viewport": "mobile",
     "covers": [
-      "Animated electricity flow inside cable trays",
-      "Show / Hide Energy Flow",
-      "Energy direction and power intensity",
-      "Accessibility state of flow toggle"
+      "Vivid 3D in-cable energy flow",
+      "Show Hide Energy Flow",
+      "24-hour playback direct below 3D",
+      "Half-speed daily playback",
+      "Selected day DG off-hours",
+      "Modelled average daily DG off-hours",
+      "Mobile UI hierarchy"
     ],
-    "description": "Toggling the electrical energy-flow visual effect must not remove the 3D physical cables or distort the hourly dispatch values.",
+    "description": "Ensures mobile visitors can see flow by default, switch it off and on, play/pause a slower daily simulation immediately below the 3D, and inspect the two precisely calculated diesel-off metrics.",
     "steps": [
-      "Open the 3D Experience section and locate the FLOW switch in the 3D viewer",
-      "Select FLOW to turn animation off and check the control reads NO FX and is not pressed",
-      "Confirm the 3D equipment and cables are still visible; select NO FX to restore animations",
-      "Change the operating hour from midday to midnight using the hour control and confirm diesel supplies the load"
+      "On mobile open 3D Experience and verify the green PLAY 24-HOUR CYCLE button appears immediately below the model, before the operations panel",
+      "Check BASE 304 kWp / 165 kVA with 9.27 h/day full-year average and 11 h on 15 June",
+      "Tap FLOW ON and ensure the button switches to FLOW OFF, then restore FLOW ON",
+      "Tap PLAY 24-HOUR CYCLE and verify the button changes to PAUSE 24-HOUR CYCLE while clock advances at a moderate pace",
+      "Tap pause and confirm model time stops advancing"
     ],
-    "expected": "The control changes between FLOW (aria-pressed=true) and NO FX (aria-pressed=false), physical cabling remains visible, and nightly solar/diesel status updates correctly."
+    "expected": "Viewer retains physical equipment and cable trays when effects are disabled; operator deck remains legible at 375 px; playback advances approximately one modeled hour every 0.71 seconds and pauses; diesel-off summary cards show the modeled annual average and chosen day."
   }
 ]
