@@ -1,6 +1,6 @@
-# BED 1-17 | EPROM / WEPCO 3D Solar Hybrid Dashboard
+# WEPCO BED 1-17 | Solar Hybrid Engineering Digital Twin
 
-A professional interactive engineering viewer and investment dashboard for the BED 1-17 ESP hybrid solar project. V4 includes vendor-inspired equipment detailing, luminous in-tray cable power flow, 17-second 24-hour animated playback and full-year / selected-day generator-off statistics derived from a representative 8,760-hour dispatch model. This is a **conceptual engineering visualization**, not a construction-grade digital twin or live SCADA.
+A professional interactive engineering viewer and investment dashboard for the BED 1-17 ESP hybrid solar project. V6 corrects the bifacial PV module mesh, separates PV DC and PV-inverter AC cables into physically distinct routes, and visualizes BESS charge/discharge, generator supply and LV-to-ESP connections with source-correct direction. It also includes vendor-inspired equipment detailing, a roughly 34-second 24-hour animated playback, and full-year / selected-day generator-off statistics derived from a representative 8,760-hour dispatch model. This is a **conceptual engineering visualization**, not a construction-grade digital twin or live SCADA.
 
 ## Live website
 
@@ -43,7 +43,7 @@ A Pages workflow builds this Vite application into `dist/` and uploads the compi
 | NPV 25Y at 18% | EGP 90,758,417.40 |
 | GHG avoided annually | 166.95085 tCO2 |
 
-**Separate screening model:** The current V4 includes hourly PV/BESS/DG dispatch derived from the user-supplied PVGIS-based 8,760-hour representative weather CSV. This model is separate from the financial workbook: the financial base case remains 5.5 h/day unless explicitly overridden as a screening sensitivity. Generation is modeled rather than measured. Genset startup, protection coordination, actual fuel curve, grid-forming capability, battery degradation/replacement, VAT, civil works, land costs, financing and other CAPEX risk items are **not validated**. 3D geometry and operating animation are conceptual and not real SCADA. See `ENGINEERING_MODEL.md` and `V4_RELEASE_NOTES.md` for assumptions, safety limits and test basis.
+**Separate screening model:** The current V6 includes hourly PV/BESS/DG dispatch derived from the user-supplied PVGIS-based 8,760-hour representative weather CSV. This model is separate from the financial workbook: the financial base case remains 5.5 h/day unless explicitly overridden as a screening sensitivity. Generation is modeled rather than measured. Genset startup, protection coordination, actual fuel curve, grid-forming capability, battery degradation/replacement, VAT, civil works, land costs, financing and other CAPEX risk items are **not validated**. 3D geometry and operating animation are conceptual and not real SCADA. See `ENGINEERING_MODEL.md`, `V6_ENGINEERING_REVIEW.md` and `V4_RELEASE_NOTES.md` for source basis, topology, model assumptions and limits.
 
 **Supplied technical references:** EPROM ESP Solar Hybrid SLD; EPROM ESP 456 kWp PVsyst Report; LUNA2000-161-2S11 datasheet; SUN2000-150K-MG0 datasheet; 3406C generator data and site historical material.
 
@@ -59,12 +59,21 @@ A Pages workflow builds this Vite application into `dist/` and uploads the compi
 ```
 index.html
 styles.css
-assets/eprom-logo.svg
 js/finance.js
 js/main.js
 js/scene.js
+js/topology.js
+V6_ENGINEERING_REVIEW.md
+tests_topology.mjs
 ```
 
 ## Privacy
 
 Model data is visible to everyone who visits a published page and can be inspected in browser source. Keep your GitHub repository private until the figures, corporate logo and disclosure level are approved. GitHub Pages accessibility and eligibility for private repositories depend on GitHub plan and deployment configuration.
+
+## V6 electrical topology and PV geometry (6 November 2026)
+
+- The Jinko Tiger Neo 650 Wp bifacial module is one flat dual-glass panel. The V6 solar cell plane and aluminum frame are now coplanar, with the face geometry rotated into the frame XZ plane before the rack tilt. Module length/width proportions follow the 2382 × 1134 × 30 mm Jinko datasheet at illustrative visual scale. Rack tilt is illustrative (~25°), not surveyed site data.
+- The supplier SLD establishes separate **PV DC → solar inverter → AC LV distribution panel**, **BESS PCS ↔ LV**, **diesel generator → LV**, and **LV → ESP/VSD** connections. The corresponding 3D cable routes now follow that hierarchy with distinct colored trays and directional animation. The BESS path alone reverses for charging; solar export power never animates backwards toward an inverter during PV production.
+- A pure JavaScript module (`js/topology.js`) maps hourly dispatch power to 5 physical routes, allowing regression tests of route direction, source separation and power balance. PV DC-route display power is an AC-equivalent model proxy, not direct DC measurement.
+- All 8,760-hour dispatch calculations and financial assumptions are unchanged. See `V6_ENGINEERING_REVIEW.md` for the precise changes, assumptions and residual engineering validations.
