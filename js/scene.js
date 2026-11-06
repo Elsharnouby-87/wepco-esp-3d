@@ -348,7 +348,7 @@ export class MicrogridScene{
   // PlaneGeometry is XY by default; BoxGeometry's front glazing is XZ.
   // Rotate the glass into the horizontal XZ local plane BEFORE both are tilted.
   faceGeo.rotateX(-Math.PI/2);
-  const faceMat=new THREE.MeshStandardMaterial({map:panelTexture(),color:0xe6f2f5,metalness:.17,roughness:.24,side:THREE.FrontSide});
+  const faceMat=new THREE.MeshStandardMaterial({map:panelTexture(),color:0xe6f2f5,metalness:.17,roughness:.24,side:THREE.DoubleSide});
   const frames=new THREE.InstancedMesh(frameGeo,panelDark,count);
   const faces=new THREE.InstancedMesh(faceGeo,faceMat,count);
   frames.castShadow=true;frames.receiveShadow=true;faces.castShadow=false;faces.receiveShadow=true;
@@ -384,7 +384,8 @@ export class MicrogridScene{
     mount.rotation.set(-tilt,0,0);mount.updateMatrix();
     frames.setMatrixAt(id,mount.matrix);
     // Front glass just above the aluminum rim in the same local XZ plane.
-    mount.position.y+=.019;mount.updateMatrix();faces.setMatrixAt(id,mount.matrix);id++;
+    mount.position.y+=Math.cos(tilt)*.019;mount.position.z-=Math.sin(tilt)*.019;
+    mount.updateMatrix();faces.setMatrixAt(id,mount.matrix);id++;
    }
    // Low-profile terminal box outside the array's east edge.
    const x=left+(cols-1)*pitch+1.15;
@@ -484,7 +485,16 @@ export class MicrogridScene{
    this.applyFlowState(route.id,flow.kw,flow.color,flow.direction);
   }
  }
- setMode(mode){if(!['feasibility','supplier'].includes(mode))return;this.makeSolarArray(mode);}
+ setMode(mode){
+  if(!['feasibility','supplier'].includes(mode))return;
+  this.makeSolarArray(mode);
+  // Animation intensity references equipment limits of the chosen *visual* scheme.
+  // BESS rating for feasibility is provisional per engineering model assumptions.
+  const ratings=mode==='supplier'
+   ? {pv_dc:456,pv_ac:450,battery:324,generator:250,load:250}
+   : {pv_dc:304,pv_ac:300,battery:150,generator:250,load:250};
+  for(const flow of this.pulses)flow.nominalKw=ratings[flow.id]||flow.nominalKw;
+ }
 
  focusAsset(id,sendCallback=false){if(!assetProps[id])return;this.selectedAsset=id;this.controls.autoRotate=false;this.focusTarget=assetProps[id].target.clone();const dir=this.camera.position.clone().sub(this.controls.target).normalize();this.focusCamera=assetProps[id].target.clone().addScaledVector(dir,assetProps[id].distance);if(sendCallback&&this.onAssetClick)this.onAssetClick(id);}
  resetCamera(){this.focusTarget=new THREE.Vector3(8,0,-1);this.focusCamera=new THREE.Vector3(52,34,49);this.controls.autoRotate=true;}
