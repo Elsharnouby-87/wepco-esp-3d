@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { FLOW_ROUTES, routePowerState } from './topology.js';
 
-const COLORS={mint:0x61e9be,solar:0x71bfe3,night:0x07111b,day:0x163748};
-const panelDark=new THREE.MeshStandardMaterial({color:0x132c40,metalness:.7,roughness:.28});
+const COLORS={mint:0x61e9be,solar:0x71bfe3,night:0x10242d,day:0x426d7c};
+// Unified matte anodized frames — no mirror-bright rectangular subfields.
+const panelDark=new THREE.MeshStandardMaterial({color:0x1a303d,metalness:.18,roughness:.83});
 const metal=new THREE.MeshStandardMaterial({color:0x7d9ca0,metalness:.76,roughness:.32});
 const white=new THREE.MeshStandardMaterial({color:0xc4d9d9,metalness:.30,roughness:.43});
 const graphite=new THREE.MeshStandardMaterial({color:0x263640,metalness:.45,roughness:.45});
@@ -25,8 +26,8 @@ function panelTexture(){
   g.strokeStyle='rgba(126,191,214,.12)';g.lineWidth=.5;g.strokeRect(x+.25,y+.25,cw-.5,ch-.5);
   g.strokeStyle='rgba(178,212,218,.20)';g.beginPath();g.moveTo(x+cw*.5,y+1);g.lineTo(x+cw*.5,y+ch-1);g.stroke();
  }
- g.strokeStyle='#8db0b9';g.lineWidth=3;g.strokeRect(1.5,1.5,237,473);
- g.fillStyle='rgba(213,246,250,.09)';g.beginPath();g.moveTo(5,16);g.lineTo(140,5);g.lineTo(235,142);g.lineTo(100,200);g.closePath();g.fill();
+ g.strokeStyle='#29475a';g.lineWidth=2;g.strokeRect(1.5,1.5,237,473);
+ // Removed the repeating white polygonal highlight from the glass texture.
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;
 }
 const assetProps={power:{target:new THREE.Vector3(24,0,-1),distance:28},pv:{target:new THREE.Vector3(-15,0,-5),distance:36},bess:{target:new THREE.Vector3(29,1,-16),distance:18},genset:{target:new THREE.Vector3(29,1,12),distance:19},esp:{target:new THREE.Vector3(30,1,26),distance:16}};
@@ -34,14 +35,14 @@ export class MicrogridScene{
  constructor(mount,{onAssetClick,onTourChange}={}){
   this.mount=mount;this.onAssetClick=onAssetClick;this.onTourChange=onTourChange;this.tourActive=false;this.tourElapsed=0;this.tourIndex=0;this.mode='feasibility';this.hour=12;this.paused=false;this.disposed=false;this.elapsed=0;this.assetObjects=[];this.objectParents=new Map();this.pulses=[];this.fadeLabels=[];this.flowVisible=true;this.cableRoutes=[];this.flowStates={};
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.52;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.mount.appendChild(this.renderer.domElement);
-  this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x0b1c26,.0071);
+  this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x183847,.0048);
   this.camera=new THREE.PerspectiveCamera(41,1,.1,300);this.camera.position.set(57,43,68);
   this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.target.set(4,0,-1);this.controls.enableDamping=true;this.controls.dampingFactor=.056;this.controls.minDistance=13;this.controls.maxDistance=102;this.controls.maxPolarAngle=Math.PI/2.02;this.controls.minPolarAngle=.25;this.controls.enablePan=true;this.controls.autoRotate=true;this.controls.autoRotateSpeed=.13;
-  this.ambient=new THREE.HemisphereLight(0xb9e4ff,0x182a2d,2.2);this.scene.add(this.ambient);
-  this.sunLight=new THREE.DirectionalLight(0xffedcf,3.3);this.sunLight.position.set(-25,42,-30);this.sunLight.castShadow=true;this.sunLight.shadow.mapSize.set(window.innerWidth<700?1024:2048,window.innerWidth<700?1024:2048);this.sunLight.shadow.camera.left=-72;this.sunLight.shadow.camera.right=72;this.sunLight.shadow.camera.top=65;this.sunLight.shadow.camera.bottom=-65;this.sunLight.shadow.camera.near=1;this.sunLight.shadow.camera.far=145;this.sunLight.shadow.bias=-.0002;this.scene.add(this.sunLight);
-  this.fill=new THREE.PointLight(COLORS.mint,17,51);this.fill.position.set(28,9,-12);this.scene.add(this.fill);
+  this.ambient=new THREE.HemisphereLight(0xe6f5ff,0x526363,3.5);this.scene.add(this.ambient);
+  this.sunLight=new THREE.DirectionalLight(0xfff2d9,4.8);this.sunLight.position.set(-25,42,-30);this.sunLight.castShadow=true;this.sunLight.shadow.mapSize.set(window.innerWidth<700?1024:2048,window.innerWidth<700?1024:2048);this.sunLight.shadow.camera.left=-72;this.sunLight.shadow.camera.right=72;this.sunLight.shadow.camera.top=65;this.sunLight.shadow.camera.bottom=-65;this.sunLight.shadow.camera.near=1;this.sunLight.shadow.camera.far=145;this.sunLight.shadow.bias=-.0002;this.scene.add(this.sunLight);
+  this.fill=new THREE.PointLight(0xe9f9ff,23,95);this.fill.position.set(28,9,-12);this.scene.add(this.fill);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,150),new THREE.MeshStandardMaterial({color:0x29362c,roughness:1,metalness:0}));ground.rotation.x=-Math.PI/2;ground.position.y=-.20;ground.receiveShadow=true;this.scene.add(ground);
   const groundTop=new THREE.Mesh(new THREE.PlaneGeometry(112,83),new THREE.MeshStandardMaterial({color:0x38473d,roughness:.98}));groundTop.rotation.x=-Math.PI/2;groundTop.position.y=-.16;groundTop.receiveShadow=true;this.scene.add(groundTop);
   const grid=new THREE.GridHelper(116,58,0x47776c,0x304f4a);grid.position.y=-.145;grid.material.transparent=true;grid.material.opacity=.18;this.scene.add(grid);
@@ -348,15 +349,16 @@ export class MicrogridScene{
   // PlaneGeometry is XY by default; BoxGeometry's front glazing is XZ.
   // Rotate the glass into the horizontal XZ local plane BEFORE both are tilted.
   faceGeo.rotateX(-Math.PI/2);
-  const faceMat=new THREE.MeshStandardMaterial({map:panelTexture(),color:0xe6f2f5,metalness:.17,roughness:.24,side:THREE.DoubleSide});
+  // Diffuse anti-glare glass, consistent across every instance and every camera angle.
+   const faceMat=new THREE.MeshLambertMaterial({map:panelTexture(),color:0xdae7ef,emissive:0x061525,emissiveIntensity:.23,side:THREE.DoubleSide});
   const frames=new THREE.InstancedMesh(frameGeo,panelDark,count);
   const faces=new THREE.InstancedMesh(faceGeo,faceMat,count);
-  frames.castShadow=true;frames.receiveShadow=true;faces.castShadow=false;faces.receiveShadow=true;
+  frames.castShadow=true;frames.receiveShadow=false;faces.castShadow=false;faces.receiveShadow=false;
   const mount=new THREE.Object3D();let id=0;
   const tilt=25*Math.PI/180; // illustrative rack tilt, not site-approved setting.
   const left=-28,top=-26,tableY=1.25,rowStep=3.65;
-  const legMat=new THREE.MeshStandardMaterial({color:0x809b9b,metalness:.73,roughness:.30});
-  const darkFixings=new THREE.MeshStandardMaterial({color:0x273e47,metalness:.50,roughness:.43});
+  const legMat=new THREE.MeshStandardMaterial({color:0x556b70,metalness:.26,roughness:.72});
+  const darkFixings=new THREE.MeshStandardMaterial({color:0x263e49,metalness:.24,roughness:.72});
   const halfSpan=Math.sin(tilt)*.56;
   for(let row=0;row<rows;row++){
    const z=top+row*rowStep;
@@ -394,13 +396,7 @@ export class MicrogridScene{
   }
   frames.instanceMatrix.needsUpdate=true;faces.instanceMatrix.needsUpdate=true;
   this.pvGroup.add(frames,faces);
-  // Cable pathways and gravel access aisles are BELOW the racking table, not a
-  // second tilted panel surface.
-  const aisleMat=new THREE.MeshStandardMaterial({color:0x647165,roughness:1,metalness:0});
-  for(let row=0;row<rows-1;row+=3){
-   const gravel=box((cols-1)*pitch+1,.024,.70,aisleMat,left+(cols-1)*pitch/2,-.106,top+row*rowStep+1.95);
-   gravel.receiveShadow=true;this.pvGroup.add(gravel);
-  }
+  // Continuous site terrain; rack supports and cable trays remain underneath PV rows.
   const tag=labelSprite(mode==='supplier'?'PV FIELD / 702 MODULES':'PV FIELD / 468 MODULES','#9fdaf5');
   tag.position.set(-15,5,-29);tag.scale.set(8.0,1.62,1);this.pvGroup.add(tag);
   this.pvGroup.userData.mode=mode;this.mode=mode;
@@ -419,18 +415,18 @@ export class MicrogridScene{
   const rows=this.mode==='supplier'?13:12;
   const cols=this.mode==='supplier'?54:39,pitch=this.mode==='supplier'?.91:1.15;
   const geo=new THREE.BoxGeometry(.075,.043,.13);
-  const material=new THREE.MeshStandardMaterial({color:0xaab9b8,metalness:.83,roughness:.27});
+  const material=new THREE.MeshStandardMaterial({color:0x304754,metalness:.21,roughness:.78});
   const mesh=new THREE.InstancedMesh(geo,material,rows*cols*2);
   const dummy=new THREE.Object3D();let n=0;
   for(let r=0;r<rows;r++){
    const z=-26+r*3.65;
    for(let c=0;c<cols;c++)for(const sign of[-1,1]){
-    dummy.position.set(-28+c*pitch+sign*.385,1.31,z);
+    dummy.position.set(-28+c*pitch+sign*.426,1.25+Math.cos(25*Math.PI/180)*.010,z-Math.sin(25*Math.PI/180)*.010);
     dummy.rotation.set(-25*Math.PI/180,0,0);dummy.updateMatrix();
     mesh.setMatrixAt(n++,dummy.matrix);
    }
-   const harness=box((cols-1)*pitch+.7,.035,.055,graphite,
-      -28+(cols-1)*pitch/2,.54,z-.54);
+   const harness=box((cols-1)*pitch+.7,.022,.035,graphite,
+      -28+(cols-1)*pitch/2,.45,z-.54);
    this.pvGroup.add(harness);
   }
   mesh.instanceMatrix.needsUpdate=true;mesh.receiveShadow=true;
@@ -593,11 +589,11 @@ export class MicrogridScene{
   const dust=new THREE.BufferGeometry();const array=[];for(let i=0;i<280;i++){array.push((Math.sin(i*73)*.5+.5)*115-57,Math.sin(i*61)*.45+5+(i%8), (Math.sin(i*23+6)*.5+.5)*85-42)}dust.setAttribute('position',new THREE.Float32BufferAttribute(array,3));this.particles=new THREE.Points(dust,new THREE.PointsMaterial({color:0xb9e9ca,size:.09,transparent:true,opacity:.28}));this.scene.add(this.particles);
  }
  setTime(hour){this.hour=hour;const solarFactor=Math.max(0,Math.sin(Math.PI*(hour-6)/12));const bright=Math.max(0,Math.min(1,solarFactor*1.13));const nightColor=new THREE.Color(COLORS.night),dayColor=new THREE.Color(COLORS.day);const bg=nightColor.clone().lerp(dayColor,bright);this.scene.background=bg;this.scene.fog.color=bg;
-  this.sunOrb.position.set(-45+hour/24*95,3+Math.max(0,solarFactor)*50,-43);this.sunHalo.position.copy(this.sunOrb.position);this.sunOrb.visible=bright>.05;this.sunHalo.visible=this.sunOrb.visible;this.sunLight.position.copy(this.sunOrb.position);this.sunLight.intensity=.25+bright*3.6;this.ambient.intensity=.55+bright*1.65;
+  this.sunOrb.position.set(-45+hour/24*95,3+Math.max(0,solarFactor)*50,-43);this.sunHalo.position.copy(this.sunOrb.position);this.sunOrb.visible=bright>.05;this.sunHalo.visible=this.sunOrb.visible;this.sunLight.position.copy(this.sunOrb.position);this.sunLight.intensity=1.1+bright*4.7;this.ambient.intensity=1.45+bright*2.2;
   this.dieselOn=!(hour>=9.5 && hour<15);this.solarOn=bright>.08; // overridden by calculated dispatch
   this.gensetHighlight.material.color.setHex(this.dieselOn?0xf9c663:0x5c6e68);
   this.batteryIndicators.forEach((led)=>led.material.color.setHex((hour>=9.5&&hour<15)?0x56f2b3:0x4c7978));
-  this.fill.intensity=8+bright*3;
+  this.fill.intensity=16+bright*9;
   if(this.premiumLamps)this.premiumLamps.forEach(lamp=>{lamp.intensity=.2+(1-bright)*2.4;});
   return {solarFactor,gensetOn:this.dieselOn,batteryState:!this.dieselOn?'SUPPORT':'STANDBY'};
  }
@@ -611,7 +607,7 @@ export class MicrogridScene{
   this.gensetHighlight.material.color.setHex(this.dieselOn?0xf6b84b:0x3e6f66);
   this.batteryIndicators.forEach(led=>led.material.color.setHex(this.bessDischarge?0x6aa8f1:this.bessActive?0x62f9b9:0x446a68));
   const sunPower=Math.max(0,Math.min(1,row.ghi/850));
-  this.sunLight.intensity=.4+sunPower*3.5;this.ambient.intensity=.7+sunPower*1.6;
+  this.sunLight.intensity=1.1+sunPower*4.7;this.ambient.intensity=1.45+sunPower*2.2;
   // Route powers are computed from hourly electrical dispatch (AC-equivalent kW).
   // Do not imply calibrated DC-side measurements or simultaneous DG/PV paralleling.
   const powers=routePowerState(row);
