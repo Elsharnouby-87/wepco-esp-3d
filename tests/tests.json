@@ -81,27 +81,26 @@
     "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
   },
   {
-    "name": "V8 immersive 3D equipment and cinematic viewpoints",
+    "name": "V8.1 uniform PV field and brighter 3D from top and side",
     "viewport": "mobile",
-    "sanity": false,
     "covers": [
-      "3D camera deck",
-      "Guided cinematic tour",
-      "PV/BESS/diesel/ESP asset focus",
-      "Improved equipment visualization",
-      "Two PV module and inverter variants",
-      "Power-flow direction and live state preserved",
-      "Mobile layout"
+      "Same dark-blue PV glass for all modules",
+      "No floating white polygon reflections",
+      "No separated rectangular PV rack groups",
+      "Matte support rails under glazing",
+      "Stronger 3D daylight",
+      "Correct 468 and 702 PV counts",
+      "Unchanged hourly and financial model"
     ],
-    "description": "Exercise the 3D presentation enhancements without affecting engineering calculations.",
+    "description": "Verify visually consistent modules and improved lighting on mobile without simulation changes.",
     "steps": [
-      "Open the 3D experience: check that the viewer is tall and plant equipment, racks, cables and the desert backdrop appear.",
-      "Directly below PLAY 24-HOUR CYCLE, use AERIAL, SOLAR PV, BESS, POWER ROOM, DIESEL and ESP WELL camera buttons.",
-      "Tap CINEMATIC TOUR and verify viewpoints change automatically; tap STOP TOUR or drag the scene to stop.",
-      "Select supplier scheme and observe 702 coplanar modules, three complete inverters and three BESS; switch to feasibility and confirm two inverters.",
-      "Move the daily hour control between noon and night; asset status indicators and energy-flow direction update while the off-hours and financial KPIs stay consistent.",
-      "Turn FLOW OFF and ON; 3D tray geometry remains visible when effects are hidden."
+      "On mobile, open 3D and switch between AERIAL and SOLAR PV views, then orbit from a low side angle.",
+      "All PV modules appear consistently deep blue, with no silver/white panels, repeating white polygons, or separately framed subfields.",
+      "Under-panel mounting rails remain visible with matte dark supports; ground between rows is continuous.",
+      "Scene and equipment are notably brighter at noon while shadows stay legible.",
+      "Switch from 304 kWp financial case to 456 kWp supplier case and verify 468/702 panel count remains unchanged.",
+      "Change modeled time and turn FLOW OFF/ON; simulator indicators and financial outputs remain consistent."
     ],
-    "expected": "Camera deck remains mobile-responsive and interactive; cinematic tour plays and can stop; equipment details and site lighting visible, PV faces stay coplanar; PV to LV, BESS reversible, diesel to LV and LV to ESP flow states remain coherent with hourly energy model."
+    "expected": "Uniform PV cell texture and frame from aerial and side angles, no isolated pale panels, brighter 3D, preserved PV counts, electric topology and economics."
   }
 ]
