@@ -72,13 +72,13 @@ function updateTime(){
  $('#diesel-state').style.color=row.dieselOn?'#edc38f':'#72eabd';
  txt('kwh-pv',nf(row.pvAvailable,1));txt('kwh-solar',nf(row.solarToLoad,1));txt('kwh-batt',nf(row.batteryToLoad,1));txt('kwh-charge',nf(row.charge,1));txt('kwh-diesel',nf(row.genToLoad,1));
  txt('kwh-curtail',nf(row.curtailed,1));txt('kwh-load',nf(row.loadKw,1));txt('kwh-ghi',nf(row.ghi,0));txt('kwh-temp',nf(row.temperature,1));
- txt('flow-pv-kw',nf(row.solarToLoad+row.charge,1));
+ txt('flow-pv-kw',nf(row.solarToLoad+row.charge,1));txt('flow-inverter-kw',nf(row.solarToLoad+row.charge,1));
  txt('flow-battery-kw',nf(row.batteryToLoad||row.charge,1));
  txt('flow-battery-label',row.batteryToLoad>0.05?'BESS → LOAD':row.charge>0.05?'PV → BESS':'BESS IDLE');
  txt('flow-diesel-kw',nf(row.genToLoad,1));txt('flow-esp-kw',nf(row.loadKw,1));
  $('.flow-readout.battery').classList.toggle('discharging',row.batteryToLoad>0.05);
  $('.flow-readout.battery').classList.toggle('charging',row.charge>0.05);
- for(const [k,active] of [['solar',row.solarToLoad+row.charge>.05],['battery',row.charge+row.batteryToLoad>.05],['diesel',row.genToLoad>.05]])$('.flow-readout.'+k).classList.toggle('energized',active);
+ for(const [k,active] of [['solar',row.solarToLoad+row.charge>.05],['inverter',row.solarToLoad+row.charge>.05],['battery',row.charge+row.batteryToLoad>.05],['diesel',row.genToLoad>.05]])$('.flow-readout.'+k).classList.toggle('energized',active);
 
  txt('kwh-soc',nf(row.soc*100,1));txt('kwh-stored',nf(row.socKwh,1));
  $('#soc-fill').style.width=(row.soc*100).toFixed(1)+'%';
