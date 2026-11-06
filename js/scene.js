@@ -35,17 +35,30 @@ export class MicrogridScene{
  constructor(mount,{onAssetClick,onTourChange}={}){
   this.mount=mount;this.onAssetClick=onAssetClick;this.onTourChange=onTourChange;this.tourActive=false;this.tourElapsed=0;this.tourIndex=0;this.mode='feasibility';this.hour=12;this.paused=false;this.disposed=false;this.elapsed=0;this.assetObjects=[];this.objectParents=new Map();this.pulses=[];this.fadeLabels=[];this.flowVisible=true;this.cableRoutes=[];this.flowStates={};
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.52;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.58;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.mount.appendChild(this.renderer.domElement);
-  this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x183847,.0048);
+  this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x37515b,.0038);
   this.camera=new THREE.PerspectiveCamera(41,1,.1,300);this.camera.position.set(57,43,68);
   this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.target.set(4,0,-1);this.controls.enableDamping=true;this.controls.dampingFactor=.056;this.controls.minDistance=13;this.controls.maxDistance=102;this.controls.maxPolarAngle=Math.PI/2.02;this.controls.minPolarAngle=.25;this.controls.enablePan=true;this.controls.autoRotate=true;this.controls.autoRotateSpeed=.13;
   this.ambient=new THREE.HemisphereLight(0xe6f5ff,0x526363,3.5);this.scene.add(this.ambient);
-  this.sunLight=new THREE.DirectionalLight(0xfff2d9,4.8);this.sunLight.position.set(-25,42,-30);this.sunLight.castShadow=true;this.sunLight.shadow.mapSize.set(window.innerWidth<700?1024:2048,window.innerWidth<700?1024:2048);this.sunLight.shadow.camera.left=-72;this.sunLight.shadow.camera.right=72;this.sunLight.shadow.camera.top=65;this.sunLight.shadow.camera.bottom=-65;this.sunLight.shadow.camera.near=1;this.sunLight.shadow.camera.far=145;this.sunLight.shadow.bias=-.0002;this.scene.add(this.sunLight);
+  this.sunLight=new THREE.DirectionalLight(0xfff2d9,4.8);this.sunLight.position.set(-25,42,-30);this.sunLight.castShadow=true;this.sunLight.shadow.mapSize.set(window.innerWidth<700?1024:2048,window.innerWidth<700?1024:2048);this.sunLight.shadow.camera.left=-72;this.sunLight.shadow.camera.right=72;this.sunLight.shadow.camera.top=65;this.sunLight.shadow.camera.bottom=-65;this.sunLight.shadow.camera.near=1;this.sunLight.shadow.camera.far=145;this.sunLight.shadow.bias=-.00013;this.sunLight.shadow.normalBias=.014;this.scene.add(this.sunLight);
   this.fill=new THREE.PointLight(0xe9f9ff,23,95);this.fill.position.set(28,9,-12);this.scene.add(this.fill);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,150),new THREE.MeshStandardMaterial({color:0x29362c,roughness:1,metalness:0}));ground.rotation.x=-Math.PI/2;ground.position.y=-.20;ground.receiveShadow=true;this.scene.add(ground);
-  const groundTop=new THREE.Mesh(new THREE.PlaneGeometry(112,83),new THREE.MeshStandardMaterial({color:0x38473d,roughness:.98}));groundTop.rotation.x=-Math.PI/2;groundTop.position.y=-.16;groundTop.receiveShadow=true;this.scene.add(groundTop);
-  const grid=new THREE.GridHelper(116,58,0x47776c,0x304f4a);grid.position.y=-.145;grid.material.transparent=true;grid.material.opacity=.18;this.scene.add(grid);
+  // V9 — one continuous, gently sculpted desert surface. No rectangular PV plinth,
+  // no second floor plane and no engineering grid over the real-world terrain.
+  const terrainGeo=new THREE.PlaneGeometry(180,150,96,80);
+  const vp=terrainGeo.attributes.position;
+  for(let i=0;i<vp.count;i++){
+    const x=vp.getX(i),z=-vp.getY(i);
+    const dx=Math.max(0,Math.abs(x-1.5)-45),dz=Math.max(0,Math.abs(z-1.5)-42);
+    const fade=Math.min(1,Math.hypot(dx,dz)/18);
+    const relief=(.012+.11*fade)*(Math.sin(x*.16+z*.061)*Math.cos(z*.135)+.32*Math.sin(x*.29-z*.18));
+    vp.setZ(i,relief);
+  }
+  vp.needsUpdate=true;terrainGeo.computeVertexNormals();
+  const ground=new THREE.Mesh(terrainGeo,new THREE.MeshStandardMaterial({color:0xd4c5a9,roughness:1,metalness:0}));
+  ground.rotation.x=-Math.PI/2;ground.position.y=-.20;
+  ground.receiveShadow=true;ground.name='Continuous natural Western Desert terrain';
+  this.scene.add(ground);
   this.drawEarth();this.makeHardware();this.upgradeHardware();this.makePrecisionDetails();this.makeSolarArray('feasibility');this.makeFlow();this.makeSun();this.makePremiumDetails();
   this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.mouseDown=null;
   this.onDown=e=>{this.mouseDown={x:e.clientX,y:e.clientY};this.stopTour();this.controls.autoRotate=false;};
@@ -53,9 +66,29 @@ export class MicrogridScene{
   this.renderer.domElement.addEventListener('pointerdown',this.onDown);this.renderer.domElement.addEventListener('pointerup',this.onClick);
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);this.resize();this.setTime(12);this.last=performance.now();this.animate=this.animate.bind(this);this.frame=requestAnimationFrame(this.animate);
  }
- drawEarth(){const scatter=new THREE.Group();const mat=new THREE.MeshStandardMaterial({color:0x53614e,roughness:1});const geo=new THREE.IcosahedronGeometry(.35,0);for(let i=0;i<250;i++){const a=Math.sin(i*27.7)*.5+.5,b=Math.sin(i*13.1+1.25)*.5+.5;const x=(a-.5)*105,z=(b-.5)*73;if(x>-35&&x<39&&z>-28&&z<34)continue;const m=new THREE.Mesh(geo,mat);m.position.set(x,-.10,z);m.scale.set(.5+a*1.6,.22,.35+b*1.1);m.rotation.y=i;scatter.add(m)}this.scene.add(scatter);
-  for(let i=-1;i<=1;i++){const trench=box(2,.09,69,new THREE.MeshStandardMaterial({color:0x43554c,roughness:1}),-38+i*2,-.11,0);trench.receiveShadow=true;this.scene.add(trench)}
-  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(84,.07,70)),new THREE.LineBasicMaterial({color:0x749887,transparent:true,opacity:.18}));edge.position.set(0,-.10,0);this.scene.add(edge);
+ drawEarth(){
+  // Deterministic rock scatter, modelled with GPU instancing for mobile efficiency.
+  // Pebbles belong outside the fenced process area; no artificial rectangle drawn.
+  const stoneGeo=new THREE.DodecahedronGeometry(.35,0);
+  const stoneMat=new THREE.MeshStandardMaterial({color:0xb9ac90,roughness:1,flatShading:true});
+  const stones=new THREE.InstancedMesh(stoneGeo,stoneMat,360);
+  const dummy=new THREE.Object3D(),color=new THREE.Color();
+  let index=0,seed=17006;const random=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
+  for(let k=0;k<1750 && index<360;k++){
+   const x=(random()-.5)*166,z=(random()-.5)*137;
+   if(x>-37&&x<42&&z>-32&&z<37)continue;
+   const size=.22+random()*.70;
+   dummy.position.set(x,-.14+size*.07,z);
+   dummy.rotation.set(random()*.26,random()*6.28,random()*.26);
+   dummy.scale.set(size,.13+random()*.24,size*.57);dummy.updateMatrix();
+   stones.setMatrixAt(index,dummy.matrix);
+   color.setHSL(.087+random()*.045,.13+random()*.13,.41+random()*.24);
+   stones.setColorAt(index,color);index++;
+  }
+  stones.count=index;stones.instanceMatrix.needsUpdate=true;
+  if(stones.instanceColor)stones.instanceColor.needsUpdate=true;
+  stones.castShadow=false;stones.receiveShadow=true;
+  this.scene.add(stones);
  }
  register(group,id){group.userData.asset=id;this.assetObjects.push(group);return group;}
  makeHardware(){this.hardware=new THREE.Group();this.scene.add(this.hardware);
@@ -453,34 +486,44 @@ export class MicrogridScene{
    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
    sp.scale.set(1.9,.59,1);return sp;
   };
-  // Mineral-textured Western Desert-style environment, algorithmically generated.
-  const canvas=document.createElement('canvas');canvas.width=384;canvas.height=384;
-  const g=canvas.getContext('2d');g.fillStyle='#aca18c';g.fillRect(0,0,384,384);
+  // Single continuous, neutral sandstone material with procedural wind ripples
+  // and multi-scale grain. This texture applies ONLY to the main ground mesh.
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
+  const g=canvas.getContext('2d');g.fillStyle='#cbbd9f';g.fillRect(0,0,512,512);
   let seed=20261106;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
-  for(let i=0;i<10500;i++){
-   g.fillStyle=rnd()>.53?'rgba(236,218,181,.13)':'rgba(60,63,48,.095)';
-   const x=rnd()*384,y=rnd()*384,r=.5+rnd()*1.8;g.fillRect(x,y,r,r);
+  for(let i=0;i<17500;i++){
+   g.fillStyle=rnd()>.55?'rgba(246,232,197,.16)':'rgba(85,76,60,.12)';
+   const x=rnd()*512,y=rnd()*512,r=.35+rnd()*2.1;g.fillRect(x,y,r,r);
   }
-  for(let i=0;i<85;i++){
-   const y=rnd()*384;g.strokeStyle='rgba(232,218,197,.055)';
-   g.lineWidth=.7+rnd();
-   g.beginPath();g.moveTo(0,y);g.bezierCurveTo(94,y-9,268,y+9,384,y);g.stroke();
+  for(let i=0;i<120;i++){
+   const y=rnd()*512,osc=3+rnd()*7;
+   g.strokeStyle='rgba(111,96,70,.043)';g.lineWidth=.45+rnd()*.75;
+   g.beginPath();g.moveTo(0,y);
+   g.bezierCurveTo(130,y+osc,285,y-osc,512,y+osc*.4);g.stroke();
+  }
+  for(let i=0;i<38;i++){
+    const x=rnd()*512,y=rnd()*512,r=4+rnd()*16;
+    const shade=g.createRadialGradient(x,y,0,x,y,r);
+    shade.addColorStop(0,'rgba(114,100,79,.065)');
+    shade.addColorStop(1,'rgba(114,100,79,0)');
+    g.fillStyle=shade;g.fillRect(x-r,y-r,r*2,r*2);
   }
   const gravel=new THREE.CanvasTexture(canvas);
   gravel.colorSpace=THREE.SRGBColorSpace;
   gravel.wrapS=gravel.wrapT=THREE.RepeatWrapping;
   gravel.repeat.set(7,6);
   gravel.anisotropy=Math.min(4,this.renderer.capabilities.getMaxAnisotropy());
-  for(const obj of this.scene.children){
-   if(obj.isMesh&&obj.geometry?.type==='PlaneGeometry'&&obj.rotation.x<-1){
-    obj.material.map=gravel;obj.material.color.setHex(obj.geometry.parameters.width>150?0xc7b9aa:0xb8b6a8);
-    obj.material.needsUpdate=true;
-   }
+  const groundMesh=this.scene.getObjectByName('Continuous natural Western Desert terrain');
+  if(groundMesh){
+   groundMesh.material.map=gravel;
+   groundMesh.material.color.setHex(0xe0d6c5);
+   groundMesh.material.needsUpdate=true;
   }
-  const lane=material(0x808d84,.08,.91),curb=material(0xb1b3a8,.10,.77);
-  add(this.hardware,11,.04,31,lane,12,-.093,-1);
-  for(const x of[6.3,17.7])add(this.hardware,.13,.17,31,curb,x,-.01,-1);
-  for(let i=0;i<14;i++)add(this.hardware,.18,.014,.73,amber,12,-.064,-15+i*2.15);
+  // Two subtle wheel ruts show vehicle access between the PV field and cabinets.
+  // They sit on the sand; there is no large concrete slab under the solar modules.
+  const tyre=material(0x96876c,0,1);
+  tyre.transparent=true;tyre.opacity=.40;
+  for(const x of[11.0,13.25])add(this.hardware,.21,.018,27,tyre,x,-.153,-1);
   // Huawei LUNA2000-inspired cabinet frontage with vent towers and active state strip.
   this.premiumBatteryLEDs=[];this.premiumInverterLEDs=[];
   for(let i=0;i<3;i++){
