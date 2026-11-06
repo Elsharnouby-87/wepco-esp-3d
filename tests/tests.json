@@ -81,25 +81,27 @@
     "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
   },
   {
-    "name": "V7 clean technical presentation with accessible methodology",
+    "name": "V8 immersive 3D equipment and cinematic viewpoints",
     "viewport": "mobile",
+    "sanity": false,
     "covers": [
-      "Short presentation captions",
-      "Model vs financial reference distinction",
-      "Collapsed Technical Basis & Methodology",
-      "Details disclosure on demand",
-      "Readable footer",
-      "Functional project simulation"
+      "3D camera deck",
+      "Guided cinematic tour",
+      "PV/BESS/diesel/ESP asset focus",
+      "Improved equipment visualization",
+      "Two PV module and inverter variants",
+      "Power-flow direction and live state preserved",
+      "Mobile layout"
     ],
-    "description": "Ensure long methodology and technical limitations are preserved but hidden until the visitor explicitly expands a native details panel.",
+    "description": "Exercise the 3D presentation enhancements without affecting engineering calculations.",
     "steps": [
-      "Open 3D Experience and verify the paragraph beneath the five energy-flow readouts is a concise note containing 5.5 h/day and a Technical basis link.",
-      "Verify dense engineering warnings no longer fill 3D and operations panels, while a Technical Basis & Methodology disclosure summary remains visible.",
-      "Tap Technical Basis & Methodology and verify assumptions, PV DC AC-equivalent caveat, PVGIS TMY data source, provisional PCS basis and documentation link are accessible.",
-      "Collapse the disclosure and verify controls, DG-off KPIs and cycle remain visible.",
-      "Change load or technical design to confirm the shorter modeled DG-off note updates, and separate original 5.5 h/day financial reference remains apparent.",
-      "Scroll to footer and confirm a single concise engineering visualization statement appears rather than a long disclaimer."
+      "Open the 3D experience: check that the viewer is tall and plant equipment, racks, cables and the desert backdrop appear.",
+      "Directly below PLAY 24-HOUR CYCLE, use AERIAL, SOLAR PV, BESS, POWER ROOM, DIESEL and ESP WELL camera buttons.",
+      "Tap CINEMATIC TOUR and verify viewpoints change automatically; tap STOP TOUR or drag the scene to stop.",
+      "Select supplier scheme and observe 702 coplanar modules, three complete inverters and three BESS; switch to feasibility and confirm two inverters.",
+      "Move the daily hour control between noon and night; asset status indicators and energy-flow direction update while the off-hours and financial KPIs stay consistent.",
+      "Turn FLOW OFF and ON; 3D tray geometry remains visible when effects are hidden."
     ],
-    "expected": "Caveats hidden by default but available on tap, technical evidence retained, separate finance and DG-off model basis clear, and simulation/financial controls remain usable."
+    "expected": "Camera deck remains mobile-responsive and interactive; cinematic tour plays and can stop; equipment details and site lighting visible, PV faces stay coplanar; PV to LV, BESS reversible, diesel to LV and LV to ESP flow states remain coherent with hourly energy model."
   }
 ]
