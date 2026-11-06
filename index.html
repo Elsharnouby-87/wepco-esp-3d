@@ -48,7 +48,7 @@
       <div class="experience-shell">
         <div class="viewer-stack">
         <div class="viewer">
-          <div class="viewer-top"><div class="viewer-chip"><span class="active-flash"></span> INTERACTIVE 3D <span class="viewer-chip-light">/ V5 CINEMATIC TWIN</span></div><div class="viewer-toolset"><button type="button" id="view-flow" class="flow-toggle active" aria-pressed="true" aria-label="Show or hide animated energy flow" title="Show / hide energy flow">FLOW ON</button><button type="button" id="view-reset" aria-label="Reset 3D camera" title="Reset camera">⌖</button><button type="button" id="view-pause" aria-label="Pause 3D animation" title="Pause animation">Ⅱ</button></div></div>
+          <div class="viewer-top"><div class="viewer-chip"><span class="active-flash"></span> INTERACTIVE 3D <span class="viewer-chip-light">/ V8 PREMIUM 3D</span></div><div class="viewer-toolset"><button type="button" id="view-flow" class="flow-toggle active" aria-pressed="true" aria-label="Show or hide animated energy flow" title="Show / hide energy flow">FLOW ON</button><button type="button" id="view-reset" aria-label="Reset 3D camera" title="Reset camera">⌖</button><button type="button" id="view-pause" aria-label="Pause 3D animation" title="Pause animation">Ⅱ</button></div></div>
           <div id="three-canvas" class="scene-area" role="img" aria-label="Interactive 3D schematic of photovoltaic solar rows, battery storage, generator and well load"><div id="scene-fallback" class="scene-fallback"><div class="fallback-art"><div class="fallback-sun"></div><div class="fallback-panels"></div><div class="fallback-box a"></div><div class="fallback-box b"></div><div class="fallback-box c"></div></div><p>Loading 3D microgrid experience…</p></div></div>
           <div class="viewer-overlay"><div class="viewer-overlay-left"><span class="coord-marker">⌖ <span>29.8653°N / 28.5249°E</span></span><div class="caption">ILLUSTRATIVE PLANT LAYOUT • NOT AN AS-BUILT DESIGN</div></div><div class="compass">N <span>↗</span></div></div>
           <div class="viewer-bottom"><span class="viewer-instructions">↻ DRAG TO ORBIT <i></i> SCROLL TO ZOOM <i></i> SELECT AN ASSET</span><span class="frame-tag">ENGINEERING VISUALIZATION / NOT TO SCALE</span></div>
@@ -62,6 +62,18 @@
             </button>
             <div class="cycle-clock" aria-live="off"><span>MODELED CLOCK</span><strong id="deck-clock">12:00</strong><div class="cycle-progress"><span id="cycle-progress" style="width:52%"></span></div></div>
           </div>
+<div class="camera-console" aria-label="Interactive 3D camera deck">
+          <div class="camera-console-header"><strong>3D CAMERA DECK</strong><span>EXPLORE EVERY ASSET</span></div>
+          <div class="camera-console-buttons" role="group" aria-label="3D camera viewpoints">
+            <button type="button" id="camera-tour" class="camera-tour" aria-pressed="false">▶ CINEMATIC TOUR</button>
+            <button type="button" data-camera-view="overview" aria-pressed="true">AERIAL</button>
+            <button type="button" data-camera-view="pv" aria-pressed="false">SOLAR PV</button>
+            <button type="button" data-camera-view="bess" aria-pressed="false">BESS</button>
+            <button type="button" data-camera-view="power" aria-pressed="false">POWER ROOM</button>
+            <button type="button" data-camera-view="genset" aria-pressed="false">DIESEL</button>
+            <button type="button" data-camera-view="esp" aria-pressed="false">ESP WELL</button>
+          </div>
+        </div>
           <div class="cycle-results">
             <div class="cycle-result"><span>GENERATOR OFF · FULL-YEAR AVERAGE</span><strong><b id="model-avg-off">—</b> <small>h / day</small></strong><em id="model-avg-detail">Based on 8,760 modeled hourly intervals</em></div>
             <div class="cycle-result"><span>GENERATOR OFF · SELECTED DAY</span><strong><b id="selected-day-off">—</b> <small>h / day</small></strong><em id="selected-day-detail">15 Jun · 24 modeled intervals</em></div>
