@@ -111,7 +111,7 @@ function updateDispatch(){
  txt('tech-design',state.design==='supplier'?'456 kWp supplier proposal':'304 kWp financial reference');
  const warning=state.tech.annual.offHours/365;
  if(state.design==='supplier'){$('#apply-technical-finance').disabled=true;$('#apply-technical-finance').textContent='Supplier EPC economics not established • sensitivity disabled';}else{$('#apply-technical-finance').disabled=false;$('#apply-technical-finance').textContent='↗ Apply modelled off-hours to economic sensitivity (304 kWp only)';}
- txt('tech-gap',`Weather-driven dispatch: ${nf(warning,2)} off-h/day average. Financial workbook still assumes 5.50 h/day; values are NOT reconciled without scope and generator tests.`);
+ txt('tech-gap',`Modeled DG-off: ${nf(warning,2)} h/day · Financial reference: ${nf(BASE.gensetOffHours,2)} h/day.`);
  updateTime();
 }
 
@@ -130,7 +130,7 @@ function bind(){initHoursGrid();for(const [control,key,transform] of [['ctrl-die
  $('#ctrl-pf').addEventListener('input',e=>{state.powerFactor=Number(e.target.value);updateDispatch();});
  $('#ctrl-month').addEventListener('change',e=>{state.month=Number(e.target.value);const maxDays=new Date(Date.UTC(2025,state.month,0)).getUTCDate();state.day=Math.min(state.day,maxDays);$('#ctrl-day').max=String(maxDays);$('#ctrl-day').value=String(state.day);updateTime();});
  $('#ctrl-day').addEventListener('input',e=>{state.day=Math.max(1,Math.min(new Date(Date.UTC(2025,state.month,0)).getUTCDate(),Math.round(Number(e.target.value)||1)));e.target.value=String(state.day);updateTime();});
- $('#apply-technical-finance').addEventListener('click',()=>{if(state.design!=='feasibility')return;const avg=state.tech.annual.offHours/365;state.offtime=avg;$('#ctrl-offtime').max=String(Math.max(12,avg+1));$('#ctrl-offtime').value=String(avg);updateModel();txt('tech-gap',`SCREENING ONLY • financial off-hours now ${nf(avg,2)} h/day inferred from weather dispatch, not assured contractual savings. Physical generator fuel use and shutdown sequence still to be validated.`);});
+ $('#apply-technical-finance').addEventListener('click',()=>{if(state.design!=='feasibility')return;const avg=state.tech.annual.offHours/365;state.offtime=avg;$('#ctrl-offtime').max=String(Math.max(12,avg+1));$('#ctrl-offtime').value=String(avg);updateModel();txt('tech-gap',`Scenario sensitivity: ${nf(avg,2)} h/day DG-off applied · Original financial reference: ${nf(BASE.gensetOffHours,2)} h/day.`);});
  $('#reset-technical').addEventListener('click',()=>{state.loadKva=165;state.powerFactor=.9;state.month=6;state.day=15;state.hour=12;$('#ctrl-load').value='165';$('#ctrl-pf').value='.9';$('#ctrl-month').value='6';$('#ctrl-day').value='15';$('#ctrl-day').max='30';updateDispatch();});
  $('#design-basis').addEventListener('change',switchDesign);
  $$('[data-asset]').forEach(b=>b.addEventListener('click',()=>selectAsset(b.dataset.asset,true)));
