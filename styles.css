@@ -87,3 +87,48 @@ body{overflow-x:clip}
 .methodology-content .source-footnote a{color:#8febca;text-decoration:underline}
 .methodology-note{border-top:1px solid rgba(142,205,188,.15);padding-top:13px;margin-top:16px!important}
 @media(max-width:690px){.methodology-details summary{padding:14px 12px}.methodology-content{padding:8px 13px 14px}.methodology-details summary strong{font-size:11px}}
+
+/* V8: immersive 3D and high-contrast on-model presentation camera deck. */
+@media(min-width:961px){.viewer-stack .viewer{min-height:700px}}
+@media(min-width:691px) and (max-width:960px){.viewer-stack .viewer{min-height:615px}}
+@media(max-width:690px){.viewer-stack .viewer{min-height:520px}}
+.camera-console{
+ display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;
+ margin:12px 0 12px;padding:12px 14px;
+ background:linear-gradient(105deg,rgba(24,54,60,.96),rgba(10,26,32,.96));
+ border:1px solid rgba(129,231,199,.26);border-radius:8px;
+}
+.camera-console-header{display:flex;flex-direction:column;gap:3px;white-space:nowrap}
+.camera-console-header strong{font-size:10px;letter-spacing:.12em;color:#c6f8e7}
+.camera-console-header span{font-size:8px;letter-spacing:.10em;color:#93b9b3}
+.camera-console-buttons{
+ display:flex;gap:7px;overflow-x:auto;min-width:0;padding:4px 3px;
+ overscroll-behavior-x:contain;scrollbar-width:thin;
+ scrollbar-color:rgba(123,212,189,.44) transparent;
+}
+.camera-console-buttons button{
+ font:inherit;white-space:nowrap;flex:0 0 auto;min-height:42px;
+ padding:0 13px;border:1px solid rgba(130,200,180,.26);
+ background:rgba(15,37,43,.9);border-radius:5px;
+ color:#c5ded9;font-size:10px;font-weight:800;
+ letter-spacing:.045em;cursor:pointer;transition:background .18s,border-color .18s;
+}
+.camera-console-buttons button:hover,
+.camera-console-buttons button:focus-visible{
+ border-color:#87e8c9;color:#f5fff9;background:#174c4c;outline:0;
+}
+.camera-console-buttons button[aria-pressed="true"]{
+ border-color:#82e5be;color:#f5fff8;background:rgba(56,174,143,.23);
+ box-shadow:inset 0 0 0 1px rgba(145,228,197,.18)
+}
+.camera-console-buttons .camera-tour{
+ color:#072b29;background:linear-gradient(105deg,#b1f5d8,#75dfb9);
+ border-color:#aef4d6;box-shadow:0 0 13px rgba(98,211,183,.12)
+}
+.camera-console-buttons .camera-tour.active{color:#edfff3}
+.camera-console-buttons button:disabled{opacity:.48;cursor:not-allowed}
+@media(max-width:690px){
+ .camera-console{display:block;padding:11px 10px}
+ .camera-console-header{flex-direction:row;align-items:center;gap:10px;margin-bottom:7px}
+ .camera-console-buttons button{min-height:45px;padding:0 11px}
+}
