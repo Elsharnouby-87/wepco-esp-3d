@@ -81,26 +81,28 @@
     "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
   },
   {
-    "name": "V8.1 uniform PV field and brighter 3D from top and side",
+    "name": "V9 desert-ground realism, no rectangular PV pad, responsive aerial and side views",
     "viewport": "mobile",
     "covers": [
-      "Same dark-blue PV glass for all modules",
-      "No floating white polygon reflections",
-      "No separated rectangular PV rack groups",
-      "Matte support rails under glazing",
-      "Stronger 3D daylight",
-      "Correct 468 and 702 PV counts",
-      "Unchanged hourly and financial model"
+      "Continuous sand ground under all PV modules",
+      "No light field-size rectangle",
+      "Natural desert texture and rocks",
+      "Enhanced natural daylight",
+      "Subtle vehicle access ruts",
+      "PV 468/702 module counts unchanged",
+      "Cinematic tour and site camera presets unaffected",
+      "No changes to dispatch or economics"
     ],
-    "description": "Verify visually consistent modules and improved lighting on mobile without simulation changes.",
+    "description": "Visual regression for removing the artificial 112x83 ground slab and enhancing the 3D industrial desert environment.",
     "steps": [
-      "On mobile, open 3D and switch between AERIAL and SOLAR PV views, then orbit from a low side angle.",
-      "All PV modules appear consistently deep blue, with no silver/white panels, repeating white polygons, or separately framed subfields.",
-      "Under-panel mounting rails remain visible with matte dark supports; ground between rows is continuous.",
-      "Scene and equipment are notably brighter at noon while shadows stay legible.",
-      "Switch from 304 kWp financial case to 456 kWp supplier case and verify 468/702 panel count remains unchanged.",
-      "Change modeled time and turn FLOW OFF/ON; simulator indicators and financial outputs remain consistent."
+      "Open 3D on iPhone-sized viewport. Select AERIAL view, then orbit the PV array: ground under panels and around the perimeter must be one seamless sand material with no pale rectangular pad.",
+      "Inspect SOLAR PV from a low side angle: no opaque ground plane, no row-sized white bars or floating frames. Galvanized support legs remain beneath uniform blue modules.",
+      "Inspect POWER ROOM and DIESEL: nearby gravel access area reads as desert with narrow tire tracks, not a giant concrete platform; realistic rocks only appear outside equipment area.",
+      "At solar noon, generator and batteries are readable with brighter sunlight and natural equipment shadow contrast.",
+      "Start CINEMATIC TOUR and visit all camera presets, then stop. Controls remain functional.",
+      "Switch financial 304kWp (468 modules) and supplier 456kWp (702 modules); check installed PV count and electric logic.",
+      "Change hour and ESP load and verify numeric operating output, energy flow, economics and 5.5 h financial reference remain unchanged."
     ],
-    "expected": "Uniform PV cell texture and frame from aerial and side angles, no isolated pale panels, brighter 3D, preserved PV counts, electric topology and economics."
+    "expected": "No giant pale rectangle under solar field, natural continuous textured sand with gentle terrain relief, good day/night readability, all prior interaction and simulation behavior preserved."
   }
 ]
