@@ -31,23 +31,23 @@ function panelTexture(){
 }
 const assetProps={power:{target:new THREE.Vector3(24,0,-1),distance:28},pv:{target:new THREE.Vector3(-15,0,-5),distance:36},bess:{target:new THREE.Vector3(29,1,-16),distance:18},genset:{target:new THREE.Vector3(29,1,12),distance:19},esp:{target:new THREE.Vector3(30,1,26),distance:16}};
 export class MicrogridScene{
- constructor(mount,{onAssetClick}={}){
-  this.mount=mount;this.onAssetClick=onAssetClick;this.mode='feasibility';this.hour=12;this.paused=false;this.disposed=false;this.elapsed=0;this.assetObjects=[];this.objectParents=new Map();this.pulses=[];this.fadeLabels=[];this.flowVisible=true;this.cableRoutes=[];this.flowStates={};
+ constructor(mount,{onAssetClick,onTourChange}={}){
+  this.mount=mount;this.onAssetClick=onAssetClick;this.onTourChange=onTourChange;this.tourActive=false;this.tourElapsed=0;this.tourIndex=0;this.mode='feasibility';this.hour=12;this.paused=false;this.disposed=false;this.elapsed=0;this.assetObjects=[];this.objectParents=new Map();this.pulses=[];this.fadeLabels=[];this.flowVisible=true;this.cableRoutes=[];this.flowStates={};
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.33;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.18;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.mount.appendChild(this.renderer.domElement);
   this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x0b1c26,.0071);
-  this.camera=new THREE.PerspectiveCamera(38,1,.1,300);this.camera.position.set(45,37,54);
-  this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.target.set(4,0,-1);this.controls.enableDamping=true;this.controls.dampingFactor=.056;this.controls.minDistance=13;this.controls.maxDistance=102;this.controls.maxPolarAngle=Math.PI/2.02;this.controls.minPolarAngle=.25;this.controls.enablePan=true;this.controls.autoRotate=true;this.controls.autoRotateSpeed=.22;
+  this.camera=new THREE.PerspectiveCamera(41,1,.1,300);this.camera.position.set(57,43,68);
+  this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.target.set(4,0,-1);this.controls.enableDamping=true;this.controls.dampingFactor=.056;this.controls.minDistance=13;this.controls.maxDistance=102;this.controls.maxPolarAngle=Math.PI/2.02;this.controls.minPolarAngle=.25;this.controls.enablePan=true;this.controls.autoRotate=true;this.controls.autoRotateSpeed=.13;
   this.ambient=new THREE.HemisphereLight(0xb9e4ff,0x182a2d,2.2);this.scene.add(this.ambient);
   this.sunLight=new THREE.DirectionalLight(0xffedcf,3.3);this.sunLight.position.set(-25,42,-30);this.sunLight.castShadow=true;this.sunLight.shadow.mapSize.set(window.innerWidth<700?1024:2048,window.innerWidth<700?1024:2048);this.sunLight.shadow.camera.left=-72;this.sunLight.shadow.camera.right=72;this.sunLight.shadow.camera.top=65;this.sunLight.shadow.camera.bottom=-65;this.sunLight.shadow.camera.near=1;this.sunLight.shadow.camera.far=145;this.sunLight.shadow.bias=-.0002;this.scene.add(this.sunLight);
   this.fill=new THREE.PointLight(COLORS.mint,17,51);this.fill.position.set(28,9,-12);this.scene.add(this.fill);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,150),new THREE.MeshStandardMaterial({color:0x29362c,roughness:1,metalness:0}));ground.rotation.x=-Math.PI/2;ground.position.y=-.20;ground.receiveShadow=true;this.scene.add(ground);
   const groundTop=new THREE.Mesh(new THREE.PlaneGeometry(112,83),new THREE.MeshStandardMaterial({color:0x38473d,roughness:.98}));groundTop.rotation.x=-Math.PI/2;groundTop.position.y=-.16;groundTop.receiveShadow=true;this.scene.add(groundTop);
   const grid=new THREE.GridHelper(116,58,0x47776c,0x304f4a);grid.position.y=-.145;grid.material.transparent=true;grid.material.opacity=.18;this.scene.add(grid);
-  this.drawEarth();this.makeHardware();this.upgradeHardware();this.makePrecisionDetails();this.makeSolarArray('feasibility');this.makeFlow();this.makeSun();
+  this.drawEarth();this.makeHardware();this.upgradeHardware();this.makePrecisionDetails();this.makeSolarArray('feasibility');this.makeFlow();this.makeSun();this.makePremiumDetails();
   this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.mouseDown=null;
-  this.onDown=e=>{this.mouseDown={x:e.clientX,y:e.clientY};this.controls.autoRotate=false;};
+  this.onDown=e=>{this.mouseDown={x:e.clientX,y:e.clientY};this.stopTour();this.controls.autoRotate=false;};
   this.onClick=e=>{if(!this.mouseDown||Math.hypot(this.mouseDown.x-e.clientX,this.mouseDown.y-e.clientY)>7)return;const rect=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-rect.left)/rect.width*2-1,-((e.clientY-rect.top)/rect.height)*2+1);this.raycaster.setFromCamera(this.pointer,this.camera);const hits=this.raycaster.intersectObjects(this.assetObjects,true);if(hits.length){let cur=hits[0].object;while(cur&&!cur.userData.asset)cur=cur.parent;if(cur&&cur.userData.asset)this.focusAsset(cur.userData.asset,true);}};
   this.renderer.domElement.addEventListener('pointerdown',this.onDown);this.renderer.domElement.addEventListener('pointerup',this.onClick);
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);this.resize();this.setTime(12);this.last=performance.now();this.animate=this.animate.bind(this);this.frame=requestAnimationFrame(this.animate);
@@ -410,7 +410,141 @@ export class MicrogridScene{
    if(o.type==='Sprite')return;
    o.visible=mode==='supplier'||o.position.x<31.25;
   });
+  if(this.premiumReady)this.decoratePremiumPV();
  }
+
+ /** Small anodized clamps and under-array DC string runs on each solar table. */
+ decoratePremiumPV(){
+  if(!this.pvGroup||this.pvGroup.userData.premiumDone)return;
+  const rows=this.mode==='supplier'?13:12;
+  const cols=this.mode==='supplier'?54:39,pitch=this.mode==='supplier'?.91:1.15;
+  const geo=new THREE.BoxGeometry(.075,.043,.13);
+  const material=new THREE.MeshStandardMaterial({color:0xaab9b8,metalness:.83,roughness:.27});
+  const mesh=new THREE.InstancedMesh(geo,material,rows*cols*2);
+  const dummy=new THREE.Object3D();let n=0;
+  for(let r=0;r<rows;r++){
+   const z=-26+r*3.65;
+   for(let c=0;c<cols;c++)for(const sign of[-1,1]){
+    dummy.position.set(-28+c*pitch+sign*.385,1.31,z);
+    dummy.rotation.set(-25*Math.PI/180,0,0);dummy.updateMatrix();
+    mesh.setMatrixAt(n++,dummy.matrix);
+   }
+   const harness=box((cols-1)*pitch+.7,.035,.055,graphite,
+      -28+(cols-1)*pitch/2,.54,z-.54);
+   this.pvGroup.add(harness);
+  }
+  mesh.instanceMatrix.needsUpdate=true;mesh.receiveShadow=true;
+  this.pvGroup.add(mesh);this.pvGroup.userData.premiumDone=true;
+ }
+ /** Extra scene realism is decorative; never feeds into the power calculation. */
+ makePremiumDetails(){
+  const material=(color,metalness=.38,roughness=.50)=>
+   new THREE.MeshStandardMaterial({color,metalness,roughness});
+  const steel=material(0x889e9e,.83,.29);
+  const dark=material(0x1b3239,.6,.43);
+  const pale=material(0xd8e5e1,.20,.34);
+  const amber=material(0xe8c173,.3,.44);
+  const add=(parent,w,h,d,mat,x,y,z)=>{const m=box(w,h,d,mat,x,y,z);parent.add(m);return m;};
+  const tag=(header,sub,color='#9be8d7')=>{
+   const c=document.createElement('canvas');c.width=420;c.height=132;
+   const g=c.getContext('2d');
+   g.fillStyle='rgba(10,27,34,.94)';g.fillRect(0,0,420,132);
+   g.strokeStyle=color;g.lineWidth=2;g.strokeRect(1,1,418,130);
+   g.fillStyle=color;g.fillRect(0,0,6,132);
+   g.font='600 21px Arial';g.fillText(sub,23,43);
+   g.fillStyle='#f4ffff';g.font='700 34px Arial';g.fillText(header,23,96);
+   const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
+   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
+   sp.scale.set(1.9,.59,1);return sp;
+  };
+  // Mineral-textured Western Desert-style environment, algorithmically generated.
+  const canvas=document.createElement('canvas');canvas.width=384;canvas.height=384;
+  const g=canvas.getContext('2d');g.fillStyle='#aca18c';g.fillRect(0,0,384,384);
+  let seed=20261106;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
+  for(let i=0;i<10500;i++){
+   g.fillStyle=rnd()>.53?'rgba(236,218,181,.13)':'rgba(60,63,48,.095)';
+   const x=rnd()*384,y=rnd()*384,r=.5+rnd()*1.8;g.fillRect(x,y,r,r);
+  }
+  for(let i=0;i<85;i++){
+   const y=rnd()*384;g.strokeStyle='rgba(232,218,197,.055)';
+   g.lineWidth=.7+rnd();
+   g.beginPath();g.moveTo(0,y);g.bezierCurveTo(94,y-9,268,y+9,384,y);g.stroke();
+  }
+  const gravel=new THREE.CanvasTexture(canvas);
+  gravel.colorSpace=THREE.SRGBColorSpace;
+  gravel.wrapS=gravel.wrapT=THREE.RepeatWrapping;
+  gravel.repeat.set(7,6);
+  gravel.anisotropy=Math.min(4,this.renderer.capabilities.getMaxAnisotropy());
+  for(const obj of this.scene.children){
+   if(obj.isMesh&&obj.geometry?.type==='PlaneGeometry'&&obj.rotation.x<-1){
+    obj.material.map=gravel;obj.material.color.setHex(obj.geometry.parameters.width>150?0xc7b9aa:0xb8b6a8);
+    obj.material.needsUpdate=true;
+   }
+  }
+  const lane=material(0x808d84,.08,.91),curb=material(0xb1b3a8,.10,.77);
+  add(this.hardware,11,.04,31,lane,12,-.093,-1);
+  for(const x of[6.3,17.7])add(this.hardware,.13,.17,31,curb,x,-.01,-1);
+  for(let i=0;i<14;i++)add(this.hardware,.18,.014,.73,amber,12,-.064,-15+i*2.15);
+  // Huawei LUNA2000-inspired cabinet frontage with vent towers and active state strip.
+  this.premiumBatteryLEDs=[];this.premiumInverterLEDs=[];
+  for(let i=0;i<3;i++){
+   const x=24.7+i*4.3,z=-16;
+   add(this.bessGroup,3.15,.105,.10,steel,x,4.57,z+1.81);
+   for(const dx of[-1.02,.76]){
+    add(this.bessGroup,.86,2.42,.10,dark,x+dx,2.46,z+1.85);
+    for(let n=0;n<17;n++)add(this.bessGroup,.75,.045,.075,steel,x+dx,1.42+n*.13,z+1.93);
+   }
+   add(this.bessGroup,.065,3.47,.075,steel,x,2.57,z+1.87);
+   const ledMat=new THREE.MeshStandardMaterial({color:0x65efc5,emissive:0x65efc5,emissiveIntensity:1.3});
+   this.premiumBatteryLEDs.push(add(this.bessGroup,1.68,.076,.087,ledMat,x,4.53,z+1.92));
+   const label=tag('ESS '+String(i+1).padStart(2,'0'),'SMART ENERGY STORAGE');
+   label.position.set(x,3.62,z+1.96);this.bessGroup.add(label);
+  }
+  // SUN2000-150K inspired smooth white face, central indicator and cable glands.
+  for(let i=0;i<3;i++){
+   const x=24.5+i*4.5,z=-5;
+   add(this.inverterGroup,3.00,2.70,.13,pale,x,2.10,z+1.01);
+   add(this.inverterGroup,.95,.33,.10,dark,x,2.22,z+1.12);
+   for(const dx of[-1.34,0,1.34])for(const yy of[.88,3.34])
+    add(this.inverterGroup,.075,.075,.065,steel,x+dx,yy,z+1.12);
+   const ledMat=new THREE.MeshStandardMaterial({color:0x65e8ce,emissive:0x65e8ce,emissiveIntensity:1.4});
+   this.premiumInverterLEDs.push(add(this.inverterGroup,.18,.06,.045,ledMat,x+.37,2.25,z+1.18));
+   const label=tag('150K-MG0','PV CONTROLLER','#9dd8ee');
+   label.position.set(x,3.91,z+1.16);
+   label.scale.set(1.5,.47,1);this.inverterGroup.add(label);
+  }
+  // CAT-inspired radiator fan cowls, steel access ribs and running indicator.
+  for(const x of[26.9,31.4]){
+   const ring=new THREE.Mesh(new THREE.TorusGeometry(.68,.075,8,26),dark);
+   ring.position.set(x,2.54,13.72);this.gensetGroup.add(ring);
+   for(let j=0;j<6;j++){
+    const fan=add(this.gensetGroup,.10,.58,.05,steel,x,2.54,13.75);
+    fan.rotation.z=j*Math.PI/3;
+   }
+  }
+  for(let i=0;i<7;i++)add(this.gensetGroup,.053,1.22,.08,steel,25.8+i*1.1,2.13,8.64);
+  const genLED=new THREE.MeshStandardMaterial({color:0x71817d,emissive:0x223a3b,emissiveIntensity:.3});
+  this.premiumDieselLED=add(this.gensetGroup,.5,.20,.086,genLED,30.1,4.27,13.70);
+  // Wellhead flange stud circle and refined VSD cooling grille.
+  for(let i=0;i<8;i++)add(this.espGroup,1.71,.038,.078,dark,24,1.17+i*.15,27.03);
+  for(const h of[3.34,4.24,4.75]){
+   this.espGroup.add(cyl(.80,.12,steel,29,h,26));
+   for(let a=0;a<8;a++){
+    const rad=a*Math.PI/4;
+    this.espGroup.add(cyl(.057,.10,amber,29+.70*Math.cos(rad),h+.13,26+.70*Math.sin(rad)));
+   }
+  }
+  // Warm-site safety lighting linked only to the displayed virtual clock.
+  this.premiumLamps=[];
+  const positions=[[16,-13],[35,-9],[18,12],[36,23]];
+  positions.forEach(([x,z],index)=>{
+   if(window.innerWidth<=690&&index%2) return;
+   const l=new THREE.PointLight(0xffd09a,0,18,2);
+   l.position.set(x+.8,5.18,z);this.scene.add(l);this.premiumLamps.push(l);
+  });
+  this.premiumReady=true;this.decoratePremiumPV();
+ }
+
  makeFlow(){
   // Emissive current-direction traces are placed inside a translucent conduit on
   // the installed conceptual cable-tray centreline. Additive shells improve wide
@@ -463,7 +597,8 @@ export class MicrogridScene{
   this.dieselOn=!(hour>=9.5 && hour<15);this.solarOn=bright>.08; // overridden by calculated dispatch
   this.gensetHighlight.material.color.setHex(this.dieselOn?0xf9c663:0x5c6e68);
   this.batteryIndicators.forEach((led)=>led.material.color.setHex((hour>=9.5&&hour<15)?0x56f2b3:0x4c7978));
-  this.fill.intensity=11+bright*6;
+  this.fill.intensity=8+bright*3;
+  if(this.premiumLamps)this.premiumLamps.forEach(lamp=>{lamp.intensity=.2+(1-bright)*2.4;});
   return {solarFactor,gensetOn:this.dieselOn,batteryState:!this.dieselOn?'SUPPORT':'STANDBY'};
  }
  /** Feed the physically computed dispatch back into the 3D scene and cable pulses. */
@@ -484,6 +619,24 @@ export class MicrogridScene{
    const flow=powers[route.id];
    this.applyFlowState(route.id,flow.kw,flow.color,flow.direction);
   }
+  if(this.premiumBatteryLEDs){
+   const batteryActive=row.charge>.05||row.batteryToLoad>.05;
+   const batteryColor=row.batteryToLoad>.05?0x7ca5ff:row.charge>.05?0x65edc2:0x607b7d;
+   for(const led of this.premiumBatteryLEDs){
+    led.material.color.setHex(batteryColor);
+    led.material.emissive.setHex(batteryColor);
+    led.material.emissiveIntensity=batteryActive?1.55:.24;
+   }
+   for(const led of this.premiumInverterLEDs){
+    const active=row.pvUsed>.05;
+    led.material.color.setHex(active?0x68edd0:0x647c7f);
+    led.material.emissive.setHex(active?0x68edd0:0x1d343c);
+    led.material.emissiveIntensity=active?1.45:.13;
+   }
+   this.premiumDieselLED.material.color.setHex(row.dieselOn?0xffc074:0x798784);
+   this.premiumDieselLED.material.emissive.setHex(row.dieselOn?0xffa744:0x243a3c);
+   this.premiumDieselLED.material.emissiveIntensity=row.dieselOn?1.8:.16;
+  }
  }
  setMode(mode){
   if(!['feasibility','supplier'].includes(mode))return;
@@ -496,10 +649,47 @@ export class MicrogridScene{
   for(const flow of this.pulses)flow.nominalKw=ratings[flow.id]||flow.nominalKw;
  }
 
- focusAsset(id,sendCallback=false){if(!assetProps[id])return;this.selectedAsset=id;this.controls.autoRotate=false;this.focusTarget=assetProps[id].target.clone();const dir=this.camera.position.clone().sub(this.controls.target).normalize();this.focusCamera=assetProps[id].target.clone().addScaledVector(dir,assetProps[id].distance);if(sendCallback&&this.onAssetClick)this.onAssetClick(id);}
- resetCamera(){this.focusTarget=new THREE.Vector3(8,0,-1);this.focusCamera=new THREE.Vector3(52,34,49);this.controls.autoRotate=true;}
+
+ stopTour(){
+  if(!this.tourActive)return;
+  this.tourActive=false;
+  if(this.onTourChange)this.onTourChange(false);
+ }
+ setCameraView(key,fromTour=false){
+  const views={
+   overview:{eye:[57,43,68],target:[4,0,-1]},
+   pv:{eye:[-11,18,30],target:[-12,1,-9]},
+   bess:{eye:[50,17,-6],target:[29,2,-16]},
+   power:{eye:[44,16,18],target:[24,1,-2]},
+   genset:{eye:[49,16,31],target:[29,2,11]},
+   esp:{eye:[44,15,41],target:[29,3,25]}
+  };
+  const p=views[key];if(!p)return false;
+  if(!fromTour)this.stopTour();
+  this.controls.autoRotate=false;
+  this.focusTarget=new THREE.Vector3(...p.target);
+  this.focusCamera=new THREE.Vector3(...p.eye);
+  return true;
+ }
+ startTour(){
+  this.tourSequence=['overview','pv','bess','power','genset','esp'];
+  this.tourActive=true;this.tourIndex=0;this.tourElapsed=0;
+  this.setCameraView(this.tourSequence[0],true);
+  if(this.onTourChange)this.onTourChange(true);
+ }
+
+ focusAsset(id,sendCallback=false){if(!assetProps[id])return;this.stopTour();this.selectedAsset=id;this.controls.autoRotate=false;this.focusTarget=assetProps[id].target.clone();const dir=this.camera.position.clone().sub(this.controls.target).normalize();this.focusCamera=assetProps[id].target.clone().addScaledVector(dir,assetProps[id].distance);if(sendCallback&&this.onAssetClick)this.onAssetClick(id);}
+ resetCamera(){this.setCameraView('overview');this.controls.autoRotate=true;}
  setPaused(pause){this.paused=Boolean(pause);}
  animate(now){if(this.disposed)return;this.frame=requestAnimationFrame(this.animate);const dt=Math.min(.05,(now-this.last)/1000||.016);this.last=now;if(!this.paused){this.elapsed+=dt;
+   if(this.tourActive){
+    this.tourElapsed+=dt;
+    if(this.tourElapsed>=6.6){
+     this.tourElapsed=0;
+     this.tourIndex=(this.tourIndex+1)%this.tourSequence.length;
+     this.setCameraView(this.tourSequence[this.tourIndex],true);
+    }
+   }
    for(const p of this.pulses){
     const ratio=Math.max(0,Math.min(1,p.state.kw/p.nominalKw));
     const visible=this.flowVisible&&p.state.active&&ratio>.01;
@@ -521,7 +711,7 @@ export class MicrogridScene{
       pulse.position.copy(p.samples[n]).lerp(p.samples[n+1],progress);
       const tangent=p.samples[n+1].clone().sub(p.samples[n]).normalize().multiplyScalar(p.state.direction);
       pulse.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tangent);
-      const width=1.08+ratio*1.10;
+      const width=1.04+ratio*.85;
       pulse.scale.set(width,.88+ratio*.28,width);
       pulse.material.color.setHex(p.state.color);pulse.material.opacity=.96;
       pulse.userData.aura.material.color.setHex(p.state.color);
@@ -529,7 +719,7 @@ export class MicrogridScene{
     });
    }this.sunOrb.rotation.y+=dt*.06;
   }
-  if(this.focusTarget){this.controls.target.lerp(this.focusTarget,Math.min(1,dt*3.8));this.camera.position.lerp(this.focusCamera,Math.min(1,dt*3.5));if(this.controls.target.distanceTo(this.focusTarget)<.1){this.focusTarget=null;this.focusCamera=null;}}
+  if(this.focusTarget){this.controls.target.lerp(this.focusTarget,Math.min(1,dt*3.8));this.camera.position.lerp(this.focusCamera,Math.min(1,dt*1.95));if(this.controls.target.distanceTo(this.focusTarget)<.1){this.focusTarget=null;this.focusCamera=null;}}
   this.controls.update();this.renderer.render(this.scene,this.camera);
  }
  resize(){const w=Math.max(20,this.mount.clientWidth),h=Math.max(20,this.mount.clientHeight);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();this.renderer.setSize(w,h,false);}
