@@ -81,27 +81,25 @@
     "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
   },
   {
-    "name": "V6 corrected Jinko modules and 5 physically correct electrical routes",
+    "name": "V7 clean technical presentation with accessible methodology",
     "viewport": "mobile",
     "covers": [
-      "Coplanar Jinko PV modules",
-      "PV DC field to inverter",
-      "Solar inverter AC to LV",
-      "Battery PCS bidirectional charge discharge",
-      "Diesel generator to LV",
-      "LV switchgear to ESP VSD",
-      "Power-flow toggle",
-      "Five-path readouts"
+      "Short presentation captions",
+      "Model vs financial reference distinction",
+      "Collapsed Technical Basis & Methodology",
+      "Details disclosure on demand",
+      "Readable footer",
+      "Functional project simulation"
     ],
-    "description": "Inspect Jinko dual-glass cell plane, 5 physically independent cable routes, flow direction, and source states.",
+    "description": "Ensure long methodology and technical limitations are preserved but hidden until the visitor explicitly expands a native details panel.",
     "steps": [
-      "Open 3D and orbit PV field: each blue solar-glass surface lies flat in one inclined aluminum frame, with support posts below it; no vertical plane intersects its middle.",
-      "Confirm 5 live source-path readouts appear beneath 3D including PV DC → INVERTER and INVERTER AC → LV.",
-      "At noon June 15 with 165 kVA load inspect PV DC → inverter and inverter AC → LV flows, generator inactive, BESS reverse when charging.",
-      "At midnight check both solar routes inactive, diesel → LV active, LV → VSD remains active.",
-      "Switch FLOW OFF then ON; cable trays persist while in-cable FX hide/reappear.",
-      "Select supplier scheme and observe 702 panels, three inverters; return to feasibility and observe 468 panels and only two complete inverters."
+      "Open 3D Experience and verify the paragraph beneath the five energy-flow readouts is a concise note containing 5.5 h/day and a Technical basis link.",
+      "Verify dense engineering warnings no longer fill 3D and operations panels, while a Technical Basis & Methodology disclosure summary remains visible.",
+      "Tap Technical Basis & Methodology and verify assumptions, PV DC AC-equivalent caveat, PVGIS TMY data source, provisional PCS basis and documentation link are accessible.",
+      "Collapse the disclosure and verify controls, DG-off KPIs and cycle remain visible.",
+      "Change load or technical design to confirm the shorter modeled DG-off note updates, and separate original 5.5 h/day financial reference remains apparent.",
+      "Scroll to footer and confirm a single concise engineering visualization statement appears rather than a long disclaimer."
     ],
-    "expected": "No perpendicular PV faces, separate inverter AC export path (never bus-to-inverter when producing), BESS reversible only on charge, accurate diesel/no-parallel status, correct module/inverter alternatives and unchanged annual generator-off financial KPIs."
+    "expected": "Caveats hidden by default but available on tap, technical evidence retained, separate finance and DG-off model basis clear, and simulation/financial controls remain usable."
   }
 ]
