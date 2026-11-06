@@ -135,13 +135,39 @@ function bind(){initHoursGrid();for(const [control,key,transform] of [['ctrl-die
  $('#design-basis').addEventListener('change',switchDesign);
  $$('[data-asset]').forEach(b=>b.addEventListener('click',()=>selectAsset(b.dataset.asset,true)));
  $('#view-flow').addEventListener('click',()=>{state.flowVisible=!state.flowVisible;const btn=$('#view-flow');btn.classList.toggle('active',state.flowVisible);btn.setAttribute('aria-pressed',String(state.flowVisible));btn.textContent=state.flowVisible?'FLOW ON':'FLOW OFF';state.scene?.setFlowVisible(state.flowVisible);});
- $('#view-reset').addEventListener('click',()=>state.scene?.resetCamera());
+ const tourButton=$('#camera-tour');
+ const displayTour=active=>{
+  tourButton.setAttribute('aria-pressed',String(Boolean(active)));
+  tourButton.classList.toggle('active',Boolean(active));
+  tourButton.textContent=active?'■ STOP TOUR':'▶ CINEMATIC TOUR';
+ };
+ if(reducedMotion){
+  tourButton.disabled=true;
+  tourButton.title='Automatic camera movement disabled by reduced-motion settings.';
+ }
+ tourButton.addEventListener('click',()=>{
+  if(!state.scene)return;
+  if(state.scene.tourActive)state.scene.stopTour();
+  else{
+   $$('[data-camera-view]').forEach(b=>b.setAttribute('aria-pressed','false'));
+   state.scene.startTour();
+  }
+ });
+ $$('[data-camera-view]').forEach(button=>button.addEventListener('click',()=>{
+  if(!state.scene)return;
+  state.scene.setCameraView(button.dataset.cameraView);
+  $$('[data-camera-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+ }));
+ $('#view-reset').addEventListener('click',()=>{
+  state.scene?.resetCamera();
+  $$('[data-camera-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cameraView==='overview')));
+ });
  $('#view-pause').addEventListener('click',()=>{state.paused3D=!state.paused3D;state.scene?.setPaused(state.paused3D);txt('view-pause',state.paused3D?'▶':'Ⅱ');});
  $('#time-play').addEventListener('click',()=>{state.playing=!state.playing;txt('play-text',state.playing?'PAUSE 24-HOUR CYCLE':'PLAY 24-HOUR CYCLE');txt('play-icon',state.playing?'Ⅱ':'▶');$('#time-play').setAttribute('aria-pressed',String(state.playing));});
  let last=0;const tick=now=>{if(state.playing && !document.hidden){const delta=last?Math.min(.085,(now-last)/1000):0;state.playElapsed=(state.playElapsed||0)+delta*0.7;if(state.playElapsed>=1){state.hour=(state.hour+1)%24;state.playElapsed=0;updateTime();}}last=now;requestAnimationFrame(tick);};requestAnimationFrame(tick);
  updateModel();updateTime();switchDesign();
  if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting&&state.playing&&entry.target.id==='experience'){state.playing=false;txt('play-text','PLAY 24-HOUR CYCLE');txt('play-icon','▶');$('#time-play').setAttribute('aria-pressed','false');}})},{threshold:.05});observer.observe($('#experience'));}
  // Scene loading is independent: finance, controls and charts remain functional offline.
- import('./scene.js').then(({MicrogridScene})=>{try{state.scene=new MicrogridScene($('#three-canvas'),{onAssetClick:id=>selectAsset(id,false)});$('#scene-fallback').remove();state.scene.setTime(state.hour);state.scene.setMode(state.design);state.scene.setFlowVisible(state.flowVisible);if(state.tech)state.scene.setDispatch(state.tech.rows[getIndex(state.month,state.day,state.hour)]);if(reducedMotion)state.scene.setPaused(true);}catch(err){console.warn('3D renderer unavailable, static schematic shown:',err);txt('scene-fallback','');$('#scene-fallback').innerHTML='<div class="fallback-art"><div class="fallback-sun"></div><div class="fallback-panels"></div><div class="fallback-box a"></div><div class="fallback-box b"></div><div class="fallback-box c"></div></div><p>Interactive 3D requires WebGL support.</p>';}}).catch(err=>{$('#scene-fallback p').textContent='3D renderer requires an internet connection to load Three.js.';console.warn('3D module unavailable:',err);});
+ import('./scene.js').then(({MicrogridScene})=>{try{state.scene=new MicrogridScene($('#three-canvas'),{onAssetClick:id=>selectAsset(id,false),onTourChange:active=>displayTour(active)});$('#scene-fallback').remove();state.scene.setTime(state.hour);state.scene.setMode(state.design);state.scene.setFlowVisible(state.flowVisible);if(state.tech)state.scene.setDispatch(state.tech.rows[getIndex(state.month,state.day,state.hour)]);if(reducedMotion)state.scene.setPaused(true);}catch(err){console.warn('3D renderer unavailable, static schematic shown:',err);txt('scene-fallback','');$('#scene-fallback').innerHTML='<div class="fallback-art"><div class="fallback-sun"></div><div class="fallback-panels"></div><div class="fallback-box a"></div><div class="fallback-box b"></div><div class="fallback-box c"></div></div><p>Interactive 3D requires WebGL support.</p>';}}).catch(err=>{$('#scene-fallback p').textContent='3D renderer requires an internet connection to load Three.js.';console.warn('3D module unavailable:',err);});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
