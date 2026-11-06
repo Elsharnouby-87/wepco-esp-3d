@@ -66,3 +66,24 @@ body{overflow-x:clip}
 .flow-direction-legend .bess{background:#7ca5ff;color:#7ca5ff}.flow-direction-legend .dg{background:#ffb366;color:#ffb366}.flow-direction-legend .load{background:#d0f7ff;color:#d0f7ff}
 @media(max-width:960px){.flow-readouts{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:690px){.flow-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.flow-readout{min-height:52px}.flow-direction-legend{gap:7px 13px;font-size:9px}}
+
+/* V7 – keep engineering provenance available without interrupting the presentation */
+.cycle-note a{color:#9ce9d1;text-decoration:none;border-bottom:1px solid rgba(156,233,209,.5);margin-left:5px;white-space:nowrap}
+.cycle-note a:hover,.cycle-note a:focus-visible{color:#e1fff1;border-bottom-color:#e1fff1}
+.methodology-details{margin:17px 0 0;border:1px solid rgba(109,182,168,.27);background:linear-gradient(180deg,rgba(14,34,40,.78),rgba(9,23,31,.9));border-radius:10px;overflow:hidden}
+.methodology-details summary{list-style:none;display:flex;align-items:center;gap:12px;padding:16px 14px;cursor:pointer;min-height:62px;color:#c7eee4;transition:background .2s ease}
+.methodology-details summary::-webkit-details-marker{display:none}
+.methodology-details summary:hover{background:rgba(109,208,175,.09)}
+.methodology-details summary:focus-visible{outline:2px solid #8be5c7;outline-offset:-2px}
+.methodology-summary-mark{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:rgba(98,221,181,.12);border:1px solid rgba(119,216,189,.36);color:#90eacb;font-size:20px}
+.methodology-details summary strong{display:block;font-size:12px;letter-spacing:.035em}
+.methodology-details summary small{display:block;font-size:9px;color:#8aaba9;line-height:1.45;margin-top:3px}
+.methodology-chevron{font-size:21px;color:#b5dfd2;margin-left:auto;transition:transform .2s ease}
+.methodology-details[open] .methodology-chevron{transform:rotate(180deg)}
+.methodology-content{border-top:1px solid rgba(135,211,189,.2);padding:10px 17px 16px}
+.methodology-content h4{font-size:11px;color:#c7eee2;letter-spacing:.045em;margin:18px 0 8px}
+.methodology-content p{font-size:10px;line-height:1.7;color:#95b1b0;margin:7px 0}
+.methodology-content .source-footnote{color:#9cb8b7;font-size:10px;line-height:1.65;margin:8px 0}
+.methodology-content .source-footnote a{color:#8febca;text-decoration:underline}
+.methodology-note{border-top:1px solid rgba(142,205,188,.15);padding-top:13px;margin-top:16px!important}
+@media(max-width:690px){.methodology-details summary{padding:14px 12px}.methodology-content{padding:8px 13px 14px}.methodology-details summary strong{font-size:11px}}
