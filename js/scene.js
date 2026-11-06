@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { FLOW_ROUTES, routePowerState } from './topology.js';
 
 const COLORS={mint:0x61e9be,solar:0x71bfe3,night:0x07111b,day:0x163748};
 const panelDark=new THREE.MeshStandardMaterial({color:0x132c40,metalness:.7,roughness:.28});
@@ -13,25 +14,31 @@ function labelSprite(title,color='#a9f2d4'){
  const g=canvas.getContext('2d');g.fillStyle='rgba(7,19,25,.84)';g.fillRect(0,0,canvas.width,canvas.height);g.fillStyle=color;g.fillRect(0,0,5,108);g.font='700 30px Arial';g.fillText(title,24,65);g.fillStyle='rgba(133,182,185,.6)';g.fillRect(24,81,365,1);
  const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthWrite:false,transparent:true}));s.scale.set(9.7,2.39,1);return s;
 }
-function panelTexture(){const c=document.createElement('canvas');c.width=160;c.height=256;const g=c.getContext('2d');g.fillStyle='#112c41';g.fillRect(0,0,160,256);
- for(let x=0;x<4;x++)for(let y=0;y<8;y++){
-   const X=4+x*38,Y=4+y*31;const grd=g.createLinearGradient(X,Y,X+34,Y+28);grd.addColorStop(0,'#244d62');grd.addColorStop(.46,'#1b3b55');grd.addColorStop(1,'#14293e');g.fillStyle=grd;g.fillRect(X,Y,34,27);
-   g.strokeStyle='rgba(109,171,187,.22)';g.strokeRect(X+.5,Y+.5,33,26);
+function panelTexture(){
+ const c=document.createElement('canvas');c.width=240;c.height=476;
+ const g=c.getContext('2d');g.fillStyle='#0b1f30';g.fillRect(0,0,c.width,c.height);
+ const cols=12,rows=22,pad=6,gap=2,cw=(240-2*pad-(cols-1)*gap)/cols,ch=(476-2*pad-(rows-1)*gap)/rows;
+ for(let col=0;col<cols;col++)for(let row=0;row<rows;row++){
+  const x=pad+col*(cw+gap),y=pad+row*(ch+gap);
+  const grad=g.createLinearGradient(x,y,x+cw,y+ch);grad.addColorStop(0,'#17394e');grad.addColorStop(.5,'#173146');grad.addColorStop(1,'#0e2235');
+  g.fillStyle=grad;g.fillRect(x,y,cw,ch);
+  g.strokeStyle='rgba(126,191,214,.12)';g.lineWidth=.5;g.strokeRect(x+.25,y+.25,cw-.5,ch-.5);
+  g.strokeStyle='rgba(178,212,218,.20)';g.beginPath();g.moveTo(x+cw*.5,y+1);g.lineTo(x+cw*.5,y+ch-1);g.stroke();
  }
- g.strokeStyle='#86afc0';g.lineWidth=3;g.strokeRect(1,1,158,254);
- g.fillStyle='rgba(206,241,237,.15)';g.fillRect(0,22,158,3);
- const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t;
+ g.strokeStyle='#8db0b9';g.lineWidth=3;g.strokeRect(1.5,1.5,237,473);
+ g.fillStyle='rgba(213,246,250,.09)';g.beginPath();g.moveTo(5,16);g.lineTo(140,5);g.lineTo(235,142);g.lineTo(100,200);g.closePath();g.fill();
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;
 }
-const assetProps={pv:{target:new THREE.Vector3(-17,0,-3),distance:39},bess:{target:new THREE.Vector3(29,1,-16),distance:18},genset:{target:new THREE.Vector3(29,1,12),distance:19},esp:{target:new THREE.Vector3(30,1,26),distance:16}};
+const assetProps={power:{target:new THREE.Vector3(24,0,-1),distance:28},pv:{target:new THREE.Vector3(-15,0,-5),distance:36},bess:{target:new THREE.Vector3(29,1,-16),distance:18},genset:{target:new THREE.Vector3(29,1,12),distance:19},esp:{target:new THREE.Vector3(30,1,26),distance:16}};
 export class MicrogridScene{
  constructor(mount,{onAssetClick}={}){
   this.mount=mount;this.onAssetClick=onAssetClick;this.mode='feasibility';this.hour=12;this.paused=false;this.disposed=false;this.elapsed=0;this.assetObjects=[];this.objectParents=new Map();this.pulses=[];this.fadeLabels=[];this.flowVisible=true;this.cableRoutes=[];this.flowStates={};
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.25;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.33;this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.8));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.mount.appendChild(this.renderer.domElement);
   this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x0b1c26,.0071);
   this.camera=new THREE.PerspectiveCamera(38,1,.1,300);this.camera.position.set(45,37,54);
-  this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.target.set(4,0,-1);this.controls.enableDamping=true;this.controls.dampingFactor=.056;this.controls.minDistance=13;this.controls.maxDistance=102;this.controls.maxPolarAngle=Math.PI/2.02;this.controls.minPolarAngle=.25;this.controls.enablePan=true;this.controls.autoRotate=true;this.controls.autoRotateSpeed=.28;
+  this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.target.set(4,0,-1);this.controls.enableDamping=true;this.controls.dampingFactor=.056;this.controls.minDistance=13;this.controls.maxDistance=102;this.controls.maxPolarAngle=Math.PI/2.02;this.controls.minPolarAngle=.25;this.controls.enablePan=true;this.controls.autoRotate=true;this.controls.autoRotateSpeed=.22;
   this.ambient=new THREE.HemisphereLight(0xb9e4ff,0x182a2d,2.2);this.scene.add(this.ambient);
   this.sunLight=new THREE.DirectionalLight(0xffedcf,3.3);this.sunLight.position.set(-25,42,-30);this.sunLight.castShadow=true;this.sunLight.shadow.mapSize.set(window.innerWidth<700?1024:2048,window.innerWidth<700?1024:2048);this.sunLight.shadow.camera.left=-72;this.sunLight.shadow.camera.right=72;this.sunLight.shadow.camera.top=65;this.sunLight.shadow.camera.bottom=-65;this.sunLight.shadow.camera.near=1;this.sunLight.shadow.camera.far=145;this.sunLight.shadow.bias=-.0002;this.scene.add(this.sunLight);
   this.fill=new THREE.PointLight(COLORS.mint,17,51);this.fill.position.set(28,9,-12);this.scene.add(this.fill);
@@ -84,9 +91,9 @@ export class MicrogridScene{
   const pipeDown=cyl(.13,1.4,metal,33.8,2.85,26);this.espGroup.add(pipeDown);
   this.espGroup.add(box(2.7,3.4,1.7,white,24,1.9,26));this.espGroup.add(box(2.1,.45,.08,graphite,24,2.45,26.9));this.espGroup.add(box(.7,.08,.06,new THREE.MeshBasicMaterial({color:0x5debc4}),24,2.91,26.95));
   const ell=labelSprite('ESP WELL / VSD','#b8e7fb');ell.position.set(29,7.5,26);this.espGroup.add(ell);
-  // AC distribution / cable routing — conceptual connection only.
-  const bus=box(2,.24,34,new THREE.MeshStandardMaterial({color:0x3e6c64,metalness:.4,roughness:.5}),29,.12,5);this.hardware.add(bus);
-  for(const z of[-16,-5,11,26]){const link=box(.4,.1,4,metal,29,-.01,z);this.hardware.add(link)}
+  // Physical outputs are wired through the dedicated switchboard in upgradeHardware();
+  // no decorative pseudo-bus bypassing the LV switchgear is placed here.
+
  }
  /** Detail package: architectural enclosure geometry + genuine 3-phase cable paths.
   * Conceptual geometry with no claim of scaled mechanical design or exact cable route. */
@@ -172,14 +179,9 @@ export class MicrogridScene{
   // Lidded/open-top ladder cable tray runs, individual conductors, rigid metallic
   // conduit risers and concrete supports. The geometry is *illustrative*, not a
   // route survey, cable schedule or hazardous-area installation specification.
-  const cableMats={dc:paint(0x4eaecc,.35,.34),ess:paint(0x6fcba1,.35,.34),ac:paint(0xcc9670,.35,.40),load:paint(0x94a7d2,.35,.34)};
+  const cableMats={dc:paint(0x396e84,.35,.35),pvac:paint(0x5b9f98,.35,.36),ess:paint(0x526d84,.35,.36),ac:paint(0x977155,.35,.40),load:paint(0x879ca7,.35,.34)};
   const trayMat=paint(0x2d4248,.72,.38),trayRail=paint(0x839397,.67,.35),conduitMat=paint(0x99a6a8,.58,.38);
-  const cableRoutes=[
-   {id:'pv',kind:'dc',nominalKw:450,glow:0x7bdfff,pts:[[-16,.42,-20],[0,.42,-20],[20,.42,-20],[20,.42,-6.8],[25,.42,-6.8]],drops:[[-16,1.26,-20],[-8,1.18,-20],[20,1.52,-6.8],[25,1.62,-6.8]]},
-   {id:'battery',kind:'ess',nominalKw:324,glow:0x63f1b0,pts:[[29,.48,-12.7],[29,.48,-9.0],[25,.48,-9],[25,.48,1.3],[22.4,.48,1.3]],drops:[[29,1.72,-12.7],[25,1.62,-9],[22.4,1.82,1.3]]},
-   {id:'generator',kind:'ac',nominalKw:250,glow:0xf2af64,pts:[[31,.48,8.3],[31,.48,6.3],[24,.48,6.3],[22.5,.48,4.0]],drops:[[31,1.42,8.3],[24,1.58,6.3],[22.5,1.72,4.0]]},
-   {id:'load',kind:'load',nominalKw:250,glow:0x9ce9ff,pts:[[20.5,.52,4.2],[20.5,.52,19],[24,.52,19],[24,.76,24.7]],drops:[[20.5,1.66,4.2],[24,1.66,19],[24,1.95,24.7]]},
-  ];
+  const cableRoutes=FLOW_ROUTES;
   this.cableRoutes=[];
   for(const route of cableRoutes){
     const path=route.pts.map(q=>new THREE.Vector3(...q));
@@ -212,7 +214,7 @@ export class MicrogridScene{
     }
     for(let t=.04;t<.99;t+=1/Math.max(7,Math.floor(length/2.9))){
       const pt=curve.getPointAt(t);
-      const plinth=box(.64,.06,.64,concrete,pt.x,pt.y-.29,pt.z);
+      const plinth=box(.52,.07,.52,concrete,pt.x,pt.y-.31,pt.z);
       const pedestal=box(.105,.18,.105,trayRail,pt.x,pt.y-.19,pt.z);
       this.physicalCables.add(plinth,pedestal);
     }
@@ -221,10 +223,23 @@ export class MicrogridScene{
       const riser=cylinderBetween(a,b,.073,conduitMat);this.physicalCables.add(riser);
       const gland=box(.20,.075,.20,trayRail,drop[0],b[1]+.06,drop[2]);this.physicalCables.add(gland);
     }
-    this.cableRoutes.push({id:route.id,curve,segments,nominalKw:route.nominalKw,defaultColor:route.glow,wires});
+    this.cableRoutes.push({id:route.id,kind:route.kind,source:route.source,target:route.target,curve,segments,nominalKw:route.nominalKw,defaultColor:route.glow,wires});
   }
   this.hardware.add(box(9,.12,1.4,concrete,28.9,-.01,-9));
   for(const z of[-6.2,2.8,7.2]){this.hardware.add(box(11,.09,.36,rail,28.8,.15,z));}
+  // The field combiner trunk feeds the DC input of the PV inverter; the AC output
+  // is routed separately to the LV switchboard. These are not a single reversible path.
+  const dcBox=box(1.10,1.2,.65,paint(0xe1e5df,.20,.43),13.3,.65,-23);
+  const dcDoor=box(.94,1.03,.055,paint(0x193c47,.23,.45),13.3,.67,-22.63);
+  this.hardware.add(dcBox,dcDoor);
+  for(let p=0;p<3;p++)this.hardware.add(box(.18,.07,.08,paint(0x88ddeb,.12,.45),13.01+p*.29,1.02,-22.58));
+  const dcMarker=labelSprite('PV DC COLLECTION / CONCEPTUAL','#95dffd');dcMarker.position.set(11.5,3,-22);dcMarker.scale.set(6.0,1.30,1);this.hardware.add(dcMarker);
+  // AC inverter outlet and LV switchboard incoming section; colors denote paths only,
+  // not a certified hazardous-area cable classification.
+  for(const [x,z,color] of [[24.5,-4.06,0x6fd9d3],[20.8,4.45,0x6fd9d3],[23.1,3.90,0xffb45f]]){
+   this.hardware.add(box(.7,.15,.10,new THREE.MeshBasicMaterial({color}),x,1.12,z));
+  }
+
   this.leds=this.batteryIndicators;
 
  }
@@ -315,42 +330,85 @@ export class MicrogridScene{
    const glass=box(.58,.035,.22,glow,x+.8,5.34,z);this.hardware.add(glass);this.siteLights.push(glass);
   }
  }
- makeSolarArray(mode){if(this.pvGroup){this.scene.remove(this.pvGroup);this.pvGroup.traverse(o=>{if(o.geometry&&o.geometry !== this.sharedGeom)o.geometry.dispose()});this.assetObjects=this.assetObjects.filter(o=>o!==this.pvGroup)}
-  this.pvGroup=this.register(new THREE.Group(),'pv');this.scene.add(this.pvGroup);
-  const rows=mode==='supplier'?13:12;const cols=mode==='supplier'?54:39; // 702 or 468 illustrative modules.
-  const count=rows*cols;const frameGeo=new THREE.BoxGeometry(.89,.045,1.42);const faceGeo=new THREE.PlaneGeometry(.83,1.35);
-  const faceMat=new THREE.MeshStandardMaterial({map:panelTexture(),color:0xd7f4f8,metalness:.18,roughness:.28,side:THREE.DoubleSide});
-  const frames=new THREE.InstancedMesh(frameGeo,panelDark,count);const faces=new THREE.InstancedMesh(faceGeo,faceMat,count);frames.castShadow=true;frames.receiveShadow=true;faces.receiveShadow=true;
-  const d=new THREE.Object3D();let id=0;const pitch=mode==='supplier'?.91:1.15;const left=-28;const top=-26;
-  const tilt=.47;const rowDepth=1.42;const beamMat=metal;
-  for(let r=0;r<rows;r++){
-   const z=top+r*3.65;
-   const rowLen=(cols-1)*pitch+.89;
-   const beamZFront=z+.24,beamZRear=z-.26;
-   this.pvGroup.add(box(rowLen,.06,.08,beamMat,left+(cols-1)*pitch/2,.68,beamZFront));
-   this.pvGroup.add(box(rowLen,.06,.08,beamMat,left+(cols-1)*pitch/2,.33,beamZRear));
-   for(const supportCol of [1,Math.floor(cols/2),cols-2]){
-    const sx=left+supportCol*pitch;
-    this.pvGroup.add(box(.12,.66,.12,beamMat,sx,.32,z-.02));
-    this.pvGroup.add(box(.16,.05,.78,beamMat,sx,.66,z+.02));
-   }
-   for(let c=0;c<cols;c++){
-    const x=left+c*pitch;
-    d.position.set(x,1.00,z);d.rotation.set(-tilt,0,0);d.updateMatrix();frames.setMatrixAt(id,d.matrix);
-    d.position.y+=.036;d.updateMatrix();faces.setMatrixAt(id,d.matrix);id++;
-   }
-   const combX=left+rowLen/2+.92;
-   this.pvGroup.add(box(.42,.62,.28,beamMat,combX,.42,z));
-   this.pvGroup.add(box(.14,.08,.48,beamMat,combX+.22,.08,z));
+ makeSolarArray(mode){
+  if(this.pvGroup){
+   this.scene.remove(this.pvGroup);
+   this.pvGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();});
+   this.assetObjects=this.assetObjects.filter(o=>o!==this.pvGroup);
   }
-  frames.instanceMatrix.needsUpdate=true;faces.instanceMatrix.needsUpdate=true;this.pvGroup.add(frames,faces);
-  const accessMat=new THREE.MeshStandardMaterial({color:0x52635d,roughness:.98,metalness:.03});
-  for(let r=0;r<rows-1;r+=2){this.pvGroup.add(box((cols-1)*pitch+1.2,.02,.60,accessMat,left+(cols-1)*pitch/2,.02,top+r*3.65+1.82));}
-  const tag=labelSprite(mode==='supplier'?'PV ARRAY / 456 kWp':'PV ARRAY / 304 kWp','#9fdaf5');tag.position.set(-11,6,-29);this.pvGroup.add(tag);
+  this.pvGroup=this.register(new THREE.Group(),'pv');this.scene.add(this.pvGroup);
+  const rows=mode==='supplier'?13:12;
+  const cols=mode==='supplier'?54:39;
+  const count=rows*cols;  // 702 vendor option / 468 feasibility illustration.
+  // Jinko 2382 x 1134 x 30 mm has 2.1005 length/width ratio.
+  // 0.86 x 1.806 is a uniform conceptual scale of those *one-piece flat modules*.
+  const moduleW=.86,moduleL=1.806,pitch=mode==='supplier'?.91:1.15;
+  const frameGeo=new THREE.BoxGeometry(moduleW,.034,moduleL);
+  const faceGeo=new THREE.PlaneGeometry(moduleW-.056,moduleL-.056);
+  // PlaneGeometry is XY by default; BoxGeometry's front glazing is XZ.
+  // Rotate the glass into the horizontal XZ local plane BEFORE both are tilted.
+  faceGeo.rotateX(-Math.PI/2);
+  const faceMat=new THREE.MeshStandardMaterial({map:panelTexture(),color:0xe6f2f5,metalness:.17,roughness:.24,side:THREE.FrontSide});
+  const frames=new THREE.InstancedMesh(frameGeo,panelDark,count);
+  const faces=new THREE.InstancedMesh(faceGeo,faceMat,count);
+  frames.castShadow=true;frames.receiveShadow=true;faces.castShadow=false;faces.receiveShadow=true;
+  const mount=new THREE.Object3D();let id=0;
+  const tilt=25*Math.PI/180; // illustrative rack tilt, not site-approved setting.
+  const left=-28,top=-26,tableY=1.25,rowStep=3.65;
+  const legMat=new THREE.MeshStandardMaterial({color:0x809b9b,metalness:.73,roughness:.30});
+  const darkFixings=new THREE.MeshStandardMaterial({color:0x273e47,metalness:.50,roughness:.43});
+  const halfSpan=Math.sin(tilt)*.56;
+  for(let row=0;row<rows;row++){
+   const z=top+row*rowStep;
+   const centerX=left+(cols-1)*pitch/2,rowWidth=(cols-1)*pitch+moduleW;
+   // Two structural girts track the same slope as the module, safely underneath glazing.
+   for(const localZ of [-.56,.56]){
+    const y=tableY+Math.sin(tilt)*localZ-.12;
+    const rail=box(rowWidth,.075,.13,legMat,centerX,y,z+Math.cos(tilt)*localZ);
+    this.pvGroup.add(rail);
+   }
+   for(const c of [1,Math.floor(cols/2),cols-2]){
+    const x=left+c*pitch;
+    for(const localZ of [-.56,.56]){
+     const ry=tableY+Math.sin(tilt)*localZ-.12;
+     const rz=z+Math.cos(tilt)*localZ;
+     this.pvGroup.add(box(.12,ry-.03,.12,legMat,x,(ry-.03)/2,rz));
+     this.pvGroup.add(box(.45,.11,.45,darkFixings,x,.02,rz));
+    }
+    // Cross brace under the panel; never emerges through the front glass.
+    const cross=box(.07,.055,1.17,legMat,x,tableY-.27,z);
+    cross.rotation.x=-tilt;this.pvGroup.add(cross);
+   }
+   for(let col=0;col<cols;col++){
+    mount.position.set(left+col*pitch,tableY,z);
+    mount.rotation.set(-tilt,0,0);mount.updateMatrix();
+    frames.setMatrixAt(id,mount.matrix);
+    // Front glass just above the aluminum rim in the same local XZ plane.
+    mount.position.y+=.019;mount.updateMatrix();faces.setMatrixAt(id,mount.matrix);id++;
+   }
+   // Low-profile terminal box outside the array's east edge.
+   const x=left+(cols-1)*pitch+1.15;
+   this.pvGroup.add(box(.52,.55,.42,legMat,x,.38,z));
+   this.pvGroup.add(box(.42,.43,.035,darkFixings,x,.39,z+.229));
+  }
+  frames.instanceMatrix.needsUpdate=true;faces.instanceMatrix.needsUpdate=true;
+  this.pvGroup.add(frames,faces);
+  // Cable pathways and gravel access aisles are BELOW the racking table, not a
+  // second tilted panel surface.
+  const aisleMat=new THREE.MeshStandardMaterial({color:0x647165,roughness:1,metalness:0});
+  for(let row=0;row<rows-1;row+=3){
+   const gravel=box((cols-1)*pitch+1,.024,.70,aisleMat,left+(cols-1)*pitch/2,-.106,top+row*rowStep+1.95);
+   gravel.receiveShadow=true;this.pvGroup.add(gravel);
+  }
+  const tag=labelSprite(mode==='supplier'?'PV FIELD / 702 MODULES':'PV FIELD / 468 MODULES','#9fdaf5');
+  tag.position.set(-15,5,-29);tag.scale.set(8.0,1.62,1);this.pvGroup.add(tag);
   this.pvGroup.userData.mode=mode;this.mode=mode;
-  // Vendor option has three inverters, feasibility model two. Hide unused inverter.
-  this.inverterGroup.children.forEach((o)=>{if(o.type==='Sprite')return;o.visible=true});
-  if(mode==='feasibility'){this.inverterGroup.children.slice(8,12).forEach(o=>o.visible=false)}
+  // Hide the *entire* third PV inverter in the two-inverter financial illustration;
+  // previous children.slice(8,12) hid only a few disconnected decorative meshes.
+  this.inverterGroup.children.forEach(o=>{
+   if(o.type==='Sprite')return;
+   o.visible=mode==='supplier'||o.position.x<31.25;
+  });
  }
  makeFlow(){
   // Emissive current-direction traces are placed inside a translucent conduit on
@@ -417,22 +475,19 @@ export class MicrogridScene{
   this.gensetHighlight.material.color.setHex(this.dieselOn?0xf6b84b:0x3e6f66);
   this.batteryIndicators.forEach(led=>led.material.color.setHex(this.bessDischarge?0x6aa8f1:this.bessActive?0x62f9b9:0x446a68));
   const sunPower=Math.max(0,Math.min(1,row.ghi/850));
-  this.sunLight.intensity=.4+sunPower*3.5;
-  this.ambient.intensity=.7+sunPower*1.6;
-  const pvKw=Math.max(0,row.solarToLoad+row.charge);
-  const battKw=Math.max(0,row.batteryToLoad||row.charge||0);
-  const battDir=row.batteryToLoad>0.05?1:-1;
-  const battColor=row.batteryToLoad>0.05?0x72a6ff:0x63ef9b;
-  const loadColor=row.dieselOn?0xa9d8ff:row.batteryToLoad>0.05?0x8ef0d6:0xb9fff2;
-  this.applyFlowState('pv',pvKw,0x7bdfff,1);
-  this.applyFlowState('battery',battKw,battColor,battDir);
-  this.applyFlowState('generator',Math.max(0,row.genToLoad),0xf2af64,1);
-  this.applyFlowState('load',Math.max(0,row.loadKw),loadColor,1);
+  this.sunLight.intensity=.4+sunPower*3.5;this.ambient.intensity=.7+sunPower*1.6;
+  // Route powers are computed from hourly electrical dispatch (AC-equivalent kW).
+  // Do not imply calibrated DC-side measurements or simultaneous DG/PV paralleling.
+  const powers=routePowerState(row);
+  for(const route of FLOW_ROUTES){
+   const flow=powers[route.id];
+   this.applyFlowState(route.id,flow.kw,flow.color,flow.direction);
+  }
  }
  setMode(mode){if(!['feasibility','supplier'].includes(mode))return;this.makeSolarArray(mode);}
 
  focusAsset(id,sendCallback=false){if(!assetProps[id])return;this.selectedAsset=id;this.controls.autoRotate=false;this.focusTarget=assetProps[id].target.clone();const dir=this.camera.position.clone().sub(this.controls.target).normalize();this.focusCamera=assetProps[id].target.clone().addScaledVector(dir,assetProps[id].distance);if(sendCallback&&this.onAssetClick)this.onAssetClick(id);}
- resetCamera(){this.focusTarget=new THREE.Vector3(4,0,-1);this.focusCamera=new THREE.Vector3(45,37,54);this.controls.autoRotate=true;}
+ resetCamera(){this.focusTarget=new THREE.Vector3(8,0,-1);this.focusCamera=new THREE.Vector3(52,34,49);this.controls.autoRotate=true;}
  setPaused(pause){this.paused=Boolean(pause);}
  animate(now){if(this.disposed)return;this.frame=requestAnimationFrame(this.animate);const dt=Math.min(.05,(now-this.last)/1000||.016);this.last=now;if(!this.paused){this.elapsed+=dt;
    for(const p of this.pulses){
