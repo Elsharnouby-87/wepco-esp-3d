@@ -67,12 +67,14 @@
             <div class="cycle-result"><span>GENERATOR OFF · SELECTED DAY</span><strong><b id="selected-day-off">—</b> <small>h / day</small></strong><em id="selected-day-detail">15 Jun · 24 modeled intervals</em></div>
           </div>
           <div class="flow-readouts" aria-label="Live electric power flow paths">
-            <div class="flow-readout solar"><i></i><span>PV BUS</span><strong><b id="flow-pv-kw">0</b> kW</strong></div>
+            <div class="flow-readout solar"><i></i><span>PV DC → INVERTER*</span><strong><b id="flow-pv-kw">0</b> kW</strong></div>
+            <div class="flow-readout inverter"><i></i><span>INVERTER AC → LV</span><strong><b id="flow-inverter-kw">0</b> kW</strong></div>
             <div class="flow-readout battery"><i></i><span id="flow-battery-label">BATTERY</span><strong><b id="flow-battery-kw">0</b> kW</strong></div>
             <div class="flow-readout diesel"><i></i><span>DIESEL</span><strong><b id="flow-diesel-kw">0</b> kW</strong></div>
             <div class="flow-readout esp"><i></i><span>ESP LOAD</span><strong><b id="flow-esp-kw">0</b> kW</strong></div>
           </div>
-          <p class="cycle-note">Engineering screening simulation · DG-off results depend on selected PV/BESS scope, load, power factor and representative weather, not guaranteed savings. Financial base case remains 5.5 h/day.</p>
+          <div class="flow-direction-legend"><span><i class="dc"></i> PV DC → inverter</span><span><i class="ac"></i> inverter AC → switchgear</span><span><i class="bess"></i> BESS ↔ LV bus</span><span><i class="dg"></i> generator → LV bus</span><span><i class="load"></i> LV bus → VSD</span></div>
+          <p class="cycle-note">*PV DC trace displays the model's AC-equivalent dispatched PV power, not measured DC terminal power. All routes are indicative. Engineering screening simulation · DG-off results depend on selected PV/BESS scope, load, power factor and representative weather, not guaranteed savings. Financial base case remains 5.5 h/day.</p>
         </section>
         </div>
         <aside class="operations-panel"><div class="ops-header"><div><span class="ops-overline">OPERATIONAL EXPLORER</span><h3>8760-hour energy control room</h3></div><span class="ops-sun">☀</span></div><div class="ops-time"><span>HOURLY WEATHER + DISPATCH MODEL</span><div class="clock-text"><strong id="current-time">12:00</strong><span id="time-period">DAYLIGHT</span></div></div><label class="sr-only" for="hour-range">Representative time of day</label><input type="range" id="hour-range" min="0" max="23" step="1" value="12" /><div class="clock-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
