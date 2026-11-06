@@ -10,7 +10,8 @@
       "Power balance",
       "Generator off hours full-year average",
       "Generator off hours selected day",
-      "V5 rebuilt PV rack geometry and no protruding center frame"
+      "V5 rebuilt PV rack geometry and no protruding center frame",
+      "PV DC into inverter and inverter AC into LV switchgear"
     ],
     "description": "Moving the 24h scrubber updates measured-input-derived modeled solar power, battery SOC and diesel supply with power in kW.",
     "steps": [
@@ -18,9 +19,11 @@
       "Move the hour slider to 12:00 on June 15 and note PV available and diesel status",
       "Move the hour slider to 00:00",
       "Confirm the MODEL AVG card reads 9.27 hours/day and the 15 Jun selected-day card reads 11 hours/day at 165 kVA, PF 0.90",
-      "Inspect PV rows from close-up and verify there is no tall central object protruding through panel faces."
+      "Inspect PV rows from close-up and verify there is no tall central object protruding through panel faces.",
+      "At 12:00 June 15 verify independent PV DC and inverter AC animated paths enter inverter and LV respectively. Diesel remains idle.",
+      "At 00:00 confirm PV DC and inverter AC are idle and diesel feeds switchgear and ESP VSD."
     ],
-    "expected": "At midnight PV AVAILABLE is 0 kW, diesel supply is ON and the power-balance total equals 148.5 kW, with the battery SOC displayed. The 304 kWp base simulation shows 3385 yearly off hours, 9.27 h/day average, 11 h off on 15 June. PV field displays consistent shallow tilt and realistic supports."
+    "expected": "At midnight PV AVAILABLE is 0 kW, diesel supply is ON and the power-balance total equals 148.5 kW, with the battery SOC displayed. The 304 kWp base simulation shows 3385 yearly off hours, 9.27 h/day average, 11 h off on 15 June. PV field displays consistent shallow tilt and realistic supports. PV flow directions follow SLD and never reverse on diesel operation."
   },
   {
     "name": "Change normal ESP load and verify energy balances",
@@ -47,13 +50,15 @@
     "covers": [
       "Design alternative selector",
       "PV and BESS capacity switch",
-      "Economic model separation"
+      "Economic model separation",
+      "One-piece solar modules and complete inverter count switch"
     ],
     "description": "Switch to supplier design without mixing equipment scope and the 304kWp economic CAPEX.",
     "steps": [
       "Record CAPEX, IRR and payback shown in the economics dashboard",
       "Change the Design basis selector to supplier",
-      "Read PV annual gross MWh, BESS battery size, and design warning"
+      "Read PV annual gross MWh, BESS battery size, and design warning",
+      "Inspect 702 flat modules and all three PV inverters in supplier mode, then 468 modules and only two complete inverter units in financial mode."
     ],
     "expected": "The 456 kWp / 483.9 kWh supplier design appears, its modelled annual PV exceeds 900 MWh, and the financial KPIs remain based on the 304 kWp reference."
   },
@@ -76,25 +81,27 @@
     "expected": "Month selection and chart update, and the economic panel responds to the applied 304 kWp screening scenario; apply button is disabled in supplier mode."
   },
   {
-    "name": "V5 branding removal, clean PV array, improved in-cable flow and half-speed 24h playback",
+    "name": "V6 corrected Jinko modules and 5 physically correct electrical routes",
     "viewport": "mobile",
     "covers": [
-      "No EPROM logo",
-      "No redundant source-assumptions section",
-      "Visible and togglable animated in-cable flow",
-      "Corrected solar-module tilt and support structure",
-      "24-hour cycle half V4 playback speed",
-      "Energy simulation results unchanged"
+      "Coplanar Jinko PV modules",
+      "PV DC field to inverter",
+      "Solar inverter AC to LV",
+      "Battery PCS bidirectional charge discharge",
+      "Diesel generator to LV",
+      "LV switchgear to ESP VSD",
+      "Power-flow toggle",
+      "Five-path readouts"
     ],
-    "description": "Check V5 streamlines mobile content and provides smoother more visible cable animation with a slower day cycle.",
+    "description": "Inspect Jinko dual-glass cell plane, 5 physically independent cable routes, flow direction, and source states.",
     "steps": [
-      "Open home page on mobile and verify the header shows BED 1-17 with a neutral mark but no EPROM logo.",
-      "Scroll to the 3D field and examine PV panel rows: all panels have a consistent shallow tilt and support rails below the tables.",
-      "Confirm FLOW ON displays distinct bright moving colors embedded in the cable trays, then switch FLOW OFF and back on.",
-      "Press PLAY 24-HOUR CYCLE and confirm it takes approximately 34 seconds for the 24 modelled hours to advance at 0.7 hour/second.",
-      "Scroll beyond investment charts and impact cards to footer and confirm the large Transparency / Engineering Assumptions block is no longer present.",
-      "Verify hourly generator off metrics and scenario calculations remain available."
+      "Open 3D and orbit PV field: each blue solar-glass surface lies flat in one inclined aluminum frame, with support posts below it; no vertical plane intersects its middle.",
+      "Confirm 5 live source-path readouts appear beneath 3D including PV DC → INVERTER and INVERTER AC → LV.",
+      "At noon June 15 with 165 kVA load inspect PV DC → inverter and inverter AC → LV flows, generator inactive, BESS reverse when charging.",
+      "At midnight check both solar routes inactive, diesel → LV active, LV → VSD remains active.",
+      "Switch FLOW OFF then ON; cable trays persist while in-cable FX hide/reappear.",
+      "Select supplier scheme and observe 702 panels, three inverters; return to feasibility and observe 468 panels and only two complete inverters."
     ],
-    "expected": "No EPROM image logo, no obsolete basis section, more legible power-flow lights without floating wires, correct PV rack appearance, slower cycle, 3D asset controls and economics still working."
+    "expected": "No perpendicular PV faces, separate inverter AC export path (never bus-to-inverter when producing), BESS reversible only on charge, accurate diesel/no-parallel status, correct module/inverter alternatives and unchanged annual generator-off financial KPIs."
   }
 ]
