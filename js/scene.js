@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { FLOW_ROUTES, routePowerState } from './topology.js';
+import { SiteLife } from './site-life.js';
 
 const COLORS={mint:0x61e9be,solar:0x71bfe3,night:0x10242d,day:0x426d7c};
 // Unified matte anodized frames — no mirror-bright rectangular subfields.
@@ -59,7 +60,7 @@ export class MicrogridScene{
   ground.rotation.x=-Math.PI/2;ground.position.y=-.20;
   ground.receiveShadow=true;ground.name='Continuous natural Western Desert terrain';
   this.scene.add(ground);
-  this.drawEarth();this.makeHardware();this.upgradeHardware();this.makePrecisionDetails();this.makeSolarArray('feasibility');this.makeFlow();this.makeSun();this.makePremiumDetails();
+  this.drawEarth();this.makeHardware();this.upgradeHardware();this.makePrecisionDetails();this.makeSolarArray('feasibility');this.makeFlow();this.makeSun();this.makePremiumDetails();this.siteLife=new SiteLife(this.scene);
   this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.mouseDown=null;
   this.onDown=e=>{this.mouseDown={x:e.clientX,y:e.clientY};this.stopTour();this.controls.autoRotate=false;};
   this.onClick=e=>{if(!this.mouseDown||Math.hypot(this.mouseDown.x-e.clientX,this.mouseDown.y-e.clientY)>7)return;const rect=this.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-rect.left)/rect.width*2-1,-((e.clientY-rect.top)/rect.height)*2+1);this.raycaster.setFromCamera(this.pointer,this.camera);const hits=this.raycaster.intersectObjects(this.assetObjects,true);if(hits.length){let cur=hits[0].object;while(cur&&!cur.userData.asset)cur=cur.parent;if(cur&&cur.userData.asset)this.focusAsset(cur.userData.asset,true);}};
@@ -721,6 +722,7 @@ export class MicrogridScene{
  resetCamera(){this.setCameraView('overview');this.controls.autoRotate=true;}
  setPaused(pause){this.paused=Boolean(pause);}
  animate(now){if(this.disposed)return;this.frame=requestAnimationFrame(this.animate);const dt=Math.min(.05,(now-this.last)/1000||.016);this.last=now;if(!this.paused){this.elapsed+=dt;
+   if(this.siteLife)this.siteLife.update(dt);
    if(this.tourActive){
     this.tourElapsed+=dt;
     if(this.tourElapsed>=6.6){
