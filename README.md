@@ -1,12 +1,18 @@
 # WEPCO BED 1-17 | Solar Hybrid Engineering Digital Twin
 
-A professional interactive engineering viewer and investment dashboard for the BED 1-17 ESP hybrid solar project. V6 corrects the bifacial PV module mesh, separates PV DC and PV-inverter AC cables into physically distinct routes, and visualizes BESS charge/discharge, generator supply and LV-to-ESP connections with source-correct direction. It also includes vendor-inspired equipment detailing, a roughly 34-second 24-hour animated playback, and full-year / selected-day generator-off statistics derived from a representative 8,760-hour dispatch model. This is a **conceptual engineering visualization**, not a construction-grade digital twin or live SCADA.
+A professional interactive engineering viewer and investment dashboard for the BED 1-17 ESP hybrid solar project. Recent visual upgrades add a continuous desert floor and enhanced 3D equipment presentation; V6 corrected the bifacial PV module mesh, separates PV DC and PV-inverter AC cables into physically distinct routes, and visualizes BESS charge/discharge, generator supply and LV-to-ESP connections with source-correct direction. It also includes vendor-inspired equipment detailing, a roughly 34-second 24-hour animated playback, and full-year / selected-day generator-off statistics derived from a representative 8,760-hour dispatch model. This is a **conceptual engineering visualization**, not a construction-grade digital twin or live SCADA.
 
-## Live website
+## GitHub Pages — primary hosting
 
-**Production:** https://wepco-bed-1-17-solar-hybrid-digital-twin-w562jt.v2.appdeploy.ai/
+**Permanent GitHub Pages address (pending one-time activation):** https://elsharnouby-87.github.io/wepco-esp-3d/
 
-**Source control:** https://github.com/Elsharnouby-87/wepco-esp-3d
+**GitHub source code:** https://github.com/Elsharnouby-87/wepco-esp-3d
+
+**GitHub-only deployment:** `.github/workflows/pages.yml` runs on every push to `main`, installs dependencies, builds the complete Three.js/Vite site into `dist/`, and deploys it to GitHub Pages. **AppDeploy is not required** for this build, deployment, or future updates.
+
+**Current setup status (6 November 2026):** the latest GitHub Actions run **successfully compiled the app**, but failed in `actions/configure-pages@v5` because the repository's GitHub Pages site has not been enabled yet. The repository administrator must complete **Settings → Pages → Build and deployment → Source: GitHub Actions** once, then rerun the workflow via **Actions → Publish WEPCO Digital Twin → Run workflow → Run workflow**. Do not share the Pages URL as live until the deployment job succeeds. Full instructions are in [GITHUB_PAGES_SETUP.md](GITHUB_PAGES_SETUP.md).
+
+**Temporary legacy fallback (not the production target):** https://wepco-bed-1-17-solar-hybrid-digital-twin-w562jt.v2.appdeploy.ai/
 
 ## Run locally
 
@@ -21,7 +27,7 @@ Use the local URL printed by Vite. For a production build, run `npm run build` a
 
 ## GitHub Pages
 
-A Pages workflow builds this Vite application into `dist/` and uploads the compiled artifact. Enable GitHub Pages with **Settings → Pages → Source: GitHub Actions**, if it is not already enabled, and inspect the workflow result. Only publish approved, non-sensitive project information; a public site exposes the model assumptions and financial summary to visitors. AppDeploy and GitHub Pages are separate deployment targets and may have different publishing statuses.
+GitHub Pages is the intended **independent, free, automatic deployment host** for this public repository. The workflow is installed and verified to complete `npm install` and `npm run build` successfully. The only outstanding action is the one-time **Settings → Pages → Source: GitHub Actions** activation. Read [GITHUB_PAGES_SETUP.md](GITHUB_PAGES_SETUP.md). Public GitHub Pages makes the site's model assumptions and financial figures visible, so confirm the permitted disclosure scope before sharing it externally.
 
 ## Data basis and model caution
 
@@ -43,7 +49,7 @@ A Pages workflow builds this Vite application into `dist/` and uploads the compi
 | NPV 25Y at 18% | EGP 90,758,417.40 |
 | GHG avoided annually | 166.95085 tCO2 |
 
-**Separate screening model:** The current V6 includes hourly PV/BESS/DG dispatch derived from the user-supplied PVGIS-based 8,760-hour representative weather CSV. This model is separate from the financial workbook: the financial base case remains 5.5 h/day unless explicitly overridden as a screening sensitivity. Generation is modeled rather than measured. Genset startup, protection coordination, actual fuel curve, grid-forming capability, battery degradation/replacement, VAT, civil works, land costs, financing and other CAPEX risk items are **not validated**. 3D geometry and operating animation are conceptual and not real SCADA. See `ENGINEERING_MODEL.md`, `V6_ENGINEERING_REVIEW.md` and `V4_RELEASE_NOTES.md` for source basis, topology, model assumptions and limits.
+**Separate screening model:** The current model includes hourly PV/BESS/DG dispatch derived from the user-supplied PVGIS-based 8,760-hour representative weather CSV. This model is separate from the financial workbook: the financial base case remains 5.5 h/day unless explicitly overridden as a screening sensitivity. Generation is modeled rather than measured. Genset startup, protection coordination, actual fuel curve, grid-forming capability, battery degradation/replacement, VAT, civil works, land costs, financing and other CAPEX risk items are **not validated**. 3D geometry and operating animation are conceptual and not real SCADA. See `ENGINEERING_MODEL.md`, `V6_ENGINEERING_REVIEW.md` and `V4_RELEASE_NOTES.md` for source basis, topology, model assumptions and limits.
 
 **Supplied technical references:** EPROM ESP Solar Hybrid SLD; EPROM ESP 456 kWp PVsyst Report; LUNA2000-161-2S11 datasheet; SUN2000-150K-MG0 datasheet; 3406C generator data and site historical material.
 
